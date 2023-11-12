@@ -15,6 +15,7 @@ class CameraToWorldSpatialTransformationManager:
 
 
 def get_ray_bundle(height: int, width: int, focal_length: float, tform_cam2world: torch.Tensor):
+    print(f'bundle input: {tform_cam2world.shape}')
     cam2world = CameraToWorldSpatialTransformationManager(tform_cam2world)
 
     row_meshgrid, col_meshgrid = torch.meshgrid(
@@ -42,5 +43,5 @@ def get_ray_directions_from_meshgrid(row_meshgrid, col_meshgrid):
 
 def unit_torch_arange(full_range, focal_length, device):
     bound = .5 * full_range / focal_length
-    return torch.arange(-1 * bound, bound, 1/focal_length).to(device)
+    return torch.arange(-1 * bound, bound, 1 / focal_length).to(device)
 

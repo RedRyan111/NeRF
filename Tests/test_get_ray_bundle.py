@@ -1,6 +1,6 @@
 import torch
 
-from ray_bundle import my_get_ray_bundle
+from ray_bundle import get_ray_bundle
 
 
 def meshgrid_xy(tensor1: torch.Tensor, tensor2: torch.Tensor) -> (torch.Tensor, torch.Tensor):
@@ -39,6 +39,8 @@ def original_get_ray_bundle(height: int, width: int, focal_length: float, tform_
                               -(jj - height * .5) / focal_length,
                               -torch.ones_like(ii)
                               ], dim=-1)
+
+    print(f'')
     ray_directions = torch.sum(directions[..., None, :] * tform_cam2world[:3, :3], dim=-1)
     ray_origins = tform_cam2world[:3, -1].expand(ray_directions.shape)
     return ray_origins, ray_directions
@@ -52,8 +54,13 @@ width = 5
 focal_length = 128
 c2w = torch.tensor([[1, 2, 3, 2], [1, 4, 2, 1], [2, 5, 3, 1], [0, 0, 0, 1]], dtype=torch.float32)
 
-org_o, org_d = original_get_ray_bundle(height, width, focal_length, c2w)
-my_o, my_d = my_get_ray_bundle(height, width, focal_length, c2w)
+c2w1 = torch.tensor([[1, 2, 3, 2], [1, 4, 2, 1], [2, 5, 3, 1], [0, 0, 0, 1]], dtype=torch.float32)
+c2w2 = torch.tensor([[1, 2, 3, 2], [1, 4, 2, 1], [2, 5, 3, 1], [0, 0, 0, 1]], dtype=torch.float32)
+c2w_full = torch.stack([c2w1, c2w2], dim=0)
+print(f'full: {c2w_full.shape}')
+
+org_o, org_d = original_get_ray_bundle(height, width, focal_length, c2w_full)
+my_o, my_d = get_ray_bundle(height, width, focal_length, c2w_full)
 
 print(f'original: ')
 print(org_d)
