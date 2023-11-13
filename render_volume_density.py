@@ -53,8 +53,8 @@ def render_volume_density(
     # TESTED
     volume_density = torch.nn.functional.relu(radiance_field[..., 3])
     rgb = torch.sigmoid(radiance_field[..., :3])
-    one_e_10 = torch.tensor([1e10], dtype=ray_origins.dtype, device=ray_origins.device)
-    dists = torch.cat((depth_values[..., 1:] - depth_values[..., :-1], one_e_10.expand(depth_values[..., :1].shape)), dim=-1)
+
+    dists = get_differences_in_depth_values(depth_values)
 
     print(f'volume_density: {volume_density.shape} dist: {dists.shape}')
     alpha = 1. - torch.exp(-volume_density * dists)
@@ -68,6 +68,14 @@ def render_volume_density(
     acc_map = weights.sum(-1)
     print('-----------------------------------------------')
     return rgb_map, depth_map, acc_map
+
+
+def get_differences_in_depth_values(depth_values):
+    final_depth_value = torch.tensor([1e10]).to(depth_values).expand(depth_values[..., :1].shape)
+    depth_values = torch.cat((depth_values, final_depth_value), dim=-1)
+    dists = depth_values[..., 1:] - depth_values[..., :-1]
+    return dists
+
 
 def composited_color_weights(volume_density, dists):
     alpha = 1. - torch.exp(-volume_density * dists)
