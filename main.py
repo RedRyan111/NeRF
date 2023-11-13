@@ -98,7 +98,7 @@ def run_one_iter_of_tinynerf(height, width, focal_length, tform_cam2world,
     radiance_field = torch.reshape(radiance_field_flattened, unflattened_shape)
     print(f'radiance field fin: {radiance_field_flattened.shape}')
     # Perform differentiable volume rendering to re-synthesize the RGB image.
-    rgb_predicted, _, _ = render_volume_density(radiance_field, ray_origins, depth_values)
+    rgb_predicted, _, _ = render_volume_density(radiance_field, depth_values)
 
     return rgb_predicted
 
