@@ -8,73 +8,13 @@ from positional_encoding import positional_encoding
 # from ray_bundle import org_get_ray_bundle as get_ray_bundle
 from ray_bundle import get_ray_bundle
 from query_points import compute_query_points_from_rays
-#from query_points import org_compute_query_points_from_rays as compute_query_points_from_rays
+from render_volume_density import render_volume_density
+
+
+# from query_points import org_compute_query_points_from_rays as compute_query_points_from_rays
 
 def meshgrid_xy(tensor1: torch.Tensor, tensor2: torch.Tensor) -> (torch.Tensor, torch.Tensor):
     return torch.meshgrid(tensor1, tensor2, indexing='xy')
-
-
-def cumprod_exclusive(tensor: torch.Tensor) -> torch.Tensor:
-    r"""Mimick functionality of tf.math.cumprod(..., exclusive=True), as it isn't available in PyTorch.
-
-    Args:
-      tensor (torch.Tensor): Tensor whose cumprod (cumulative product, see `torch.cumprod`) along dim=-1
-        is to be computed.
-
-    Returns:
-      cumprod (torch.Tensor): cumprod of Tensor along dim=-1, mimiciking the functionality of
-        tf.math.cumprod(..., exclusive=True) (see `tf.math.cumprod` for details).
-    """
-    # TESTED
-    # Only works for the last dimension (dim=-1)
-    dim = -1
-    # Compute regular cumprod first (this is equivalent to `tf.math.cumprod(..., exclusive=False)`).
-    cumprod = torch.cumprod(tensor, dim)
-    # "Roll" the elements along dimension 'dim' by 1 element.
-    cumprod = torch.roll(cumprod, 1, dim)
-    # Replace the first element by "1" as this is what tf.cumprod(..., exclusive=True) does.
-    cumprod[..., 0] = 1.
-
-    return cumprod
-
-
-def render_volume_density(
-        radiance_field: torch.Tensor,
-        ray_origins: torch.Tensor,
-        depth_values: torch.Tensor
-) -> (torch.Tensor, torch.Tensor, torch.Tensor):
-    r"""Differentiably renders a radiance field, given the origin of each ray in the
-    "bundle", and the sampled depth values along them.
-
-    Args:
-      radiance_field (torch.Tensor): A "field" where, at each query location (X, Y, Z),
-        we have an emitted (RGB) color and a volume density (denoted :math:`\sigma` in
-        the paper) (shape: :math:`(width, height, num_samples, 4)`).
-      ray_origins (torch.Tensor): Origin of each ray in the "bundle" as returned by the
-        `get_ray_bundle()` method (shape: :math:`(width, height, 3)`).
-      depth_values (torch.Tensor): Sampled depth values along each ray
-        (shape: :math:`(num_samples)`).
-
-    Returns:
-      rgb_map (torch.Tensor): Rendered RGB image (shape: :math:`(width, height, 3)`).
-      depth_map (torch.Tensor): Rendered depth image (shape: :math:`(width, height)`).
-      acc_map (torch.Tensor): # TODO: Double-check (I think this is the accumulated
-        transmittance map).
-    """
-    # TESTED
-    sigma_a = torch.nn.functional.relu(radiance_field[..., 3])
-    rgb = torch.sigmoid(radiance_field[..., :3])
-    one_e_10 = torch.tensor([1e10], dtype=ray_origins.dtype, device=ray_origins.device)
-    dists = torch.cat((depth_values[..., 1:] - depth_values[..., :-1],
-                       one_e_10.expand(depth_values[..., :1].shape)), dim=-1)
-    alpha = 1. - torch.exp(-sigma_a * dists)
-    weights = alpha * cumprod_exclusive(1. - alpha + 1e-10)
-
-    rgb_map = (weights[..., None] * rgb).sum(dim=-2)
-    depth_map = (weights * depth_values).sum(dim=-1)
-    acc_map = weights.sum(-1)
-
-    return rgb_map, depth_map, acc_map
 
 
 def get_minibatches(inputs: torch.Tensor, chunksize: Optional[int] = 1024 * 8):
@@ -122,8 +62,7 @@ def run_one_iter_of_tinynerf(height, width, focal_length, tform_cam2world,
                              near_thresh, far_thresh, depth_samples_per_ray,
                              encoding_function, get_minibatches_function):
     # Get the "bundle" of rays through all image pixels.
-    ray_origins, ray_directions = get_ray_bundle(height, width, focal_length,
-                                                 tform_cam2world)
+    ray_origins, ray_directions = get_ray_bundle(height, width, focal_length, tform_cam2world)
 
     print(
         f'main ray origins: {ray_origins.shape} ray directions: {ray_directions.shape} cam2world: {tform_cam2world.shape}')
@@ -133,11 +72,15 @@ def run_one_iter_of_tinynerf(height, width, focal_length, tform_cam2world,
         ray_origins, ray_directions, near_thresh, far_thresh, depth_samples_per_ray
     )
 
+    print(f'query points: {query_points.shape} depth values: {depth_values.shape}')
+
     # "Flatten" the query points.
     flattened_query_points = query_points.reshape((-1, 3))
 
     # Encode the query points (default: positional encoding).
     encoded_points = encoding_function(flattened_query_points)
+
+    print(f'flattened query points: {flattened_query_points.shape} encoded query points: {encoded_points.shape}')
 
     # Split the encoded points into "chunks", run the model on all chunks, and
     # concatenate the results (to avoid out-of-memory issues).
@@ -147,10 +90,13 @@ def run_one_iter_of_tinynerf(height, width, focal_length, tform_cam2world,
         predictions.append(model(batch))
     radiance_field_flattened = torch.cat(predictions, dim=0)
 
+    print(f'radiance field cat: {radiance_field_flattened.shape}')
+
     # "Unflatten" to obtain the radiance field.
     unflattened_shape = list(query_points.shape[:-1]) + [4]
+    print(f'unflattened: {unflattened_shape}')
     radiance_field = torch.reshape(radiance_field_flattened, unflattened_shape)
-
+    print(f'radiance field fin: {radiance_field_flattened.shape}')
     # Perform differentiable volume rendering to re-synthesize the RGB image.
     rgb_predicted, _, _ = render_volume_density(radiance_field, ray_origins, depth_values)
 
@@ -204,7 +150,7 @@ for i in range(num_iters):
     target_img = images[target_img_idx].to(device)
     target_tform_cam2world = tform_cam2world[target_img_idx].to(device)
 
-    print(f'target cam2world: {target_tform_cam2world.shape}')
+    #print(f'target cam2world: {target_tform_cam2world.shape}')
 
     # Run one iteration of TinyNeRF and get the rendered RGB image.
     rgb_predicted = run_one_iter_of_tinynerf(height, width, focal_length,
