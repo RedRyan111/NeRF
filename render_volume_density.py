@@ -29,38 +29,23 @@ def render_volume_density(
         radiance_field: torch.Tensor,
         depth_values: torch.Tensor
 ) -> (torch.Tensor, torch.Tensor, torch.Tensor):
-    r"""Differentiably renders a radiance field, given the origin of each ray in the
-    "bundle", and the sampled depth values along them.
 
-    Args:
-      radiance_field (torch.Tensor): A "field" where, at each query location (X, Y, Z),
-        we have an emitted (RGB) color and a volume volume_density (denoted :math:`\sigma` in
-        the paper) (shape: :math:`(width, height, num_samples, 4)`).
-      ray_origins (torch.Tensor): Origin of each ray in the "bundle" as returned by the
-        `get_ray_bundle()` method (shape: :math:`(width, height, 3)`).
-      depth_values (torch.Tensor): Sampled depth values along each ray
-        (shape: :math:`(num_samples)`).
-
-    Returns:
-      rgb_map (torch.Tensor): Rendered RGB image (shape: :math:`(width, height, 3)`).
-      depth_map (torch.Tensor): Rendered depth image (shape: :math:`(width, height)`).
-      acc_map (torch.Tensor): # TODO: Double-check (I think this is the accumulated
-        transmittance map).
-    """
     print(f'depth values: {depth_values.shape}')
     print(f'')
     # TESTED
-    volume_density = torch.nn.functional.relu(radiance_field[..., 3])
+    absorption_coeff = torch.nn.functional.relu(radiance_field[..., 3])
     rgb = torch.sigmoid(radiance_field[..., :3])
 
     depth_differences = get_differences_in_depth_values(depth_values)
 
-    print(f'volume_density: {volume_density.shape} depth_differences: {depth_differences.shape}')
-    alpha = 1. - torch.exp(-volume_density * depth_differences)
-    weights = alpha * cumprod_exclusive(1. - alpha + 1e-10)
-    print(f'alpha: {alpha.shape} cumprod: {cumprod_exclusive(1. - alpha + 1e-10).shape}')
+    print(f'absorption_coeff: {absorption_coeff.shape} depth_differences: {depth_differences.shape}')
+    transmittance = torch.exp(-absorption_coeff * depth_differences)
+    opacity = 1. - transmittance #scattering coefficient
+    weights = opacity * cumprod_exclusive(1. - opacity + 1e-10)
+    print(f'opacity: {opacity.shape} cumprod: {cumprod_exclusive(1. - opacity + 1e-10).shape}')
 
-    # sum (volume_density * rgb * (integral of previous volume_density))
+    #transmittance * background color + (1- transmittance) * volume color
+    # absorption_coeff * rgb * (sum of previous absorption_coeff * depth_differences)
 
     rgb_map = (weights[..., None] * rgb).sum(dim=-2)
     depth_map = (weights * depth_values).sum(dim=-1)
@@ -81,3 +66,7 @@ def composited_color_weights(volume_density, dists):
     weights = alpha * cumprod_exclusive(1. - alpha + 1e-10)
     return weights
 
+
+def my_depth_differences(depth_values):
+    depth_values[..., 1:] = depth_values[..., 1:] - depth_values[..., :-1]
+    return depth_values
