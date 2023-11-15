@@ -1,0 +1,16 @@
+positional_encoding:
+  num_encoding_functions: 6
+
+rendering_variables:
+  # Near and far clipping thresholds for depth values.
+  near_threshold: 2.
+  far_threshold: 6.
+  #number of samples along a chosen camera array to create
+  depth_samples_per_ray: 32
+
+training_variables:
+  # chunking the rays bundles into smaller chunks to prevent full memory
+  chunksize: 16384
+  learning_rate: .005 #5e-3
+  # number of times the network will be trained on a new camera
+  num_iters: 1001

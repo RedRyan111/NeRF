@@ -9,26 +9,36 @@ from positional_encoding import positional_encoding
 from ray_bundle import get_ray_bundle
 from query_points import compute_query_points_from_rays
 from render_volume_density import render_volume_density
-
+import yaml
 
 # from query_points import org_compute_query_points_from_rays as compute_query_points_from_rays
+
+def set_seed(seed=9458):
+    torch.manual_seed(seed)
+    np.random.seed(seed)
 
 def meshgrid_xy(tensor1: torch.Tensor, tensor2: torch.Tensor) -> (torch.Tensor, torch.Tensor):
     return torch.meshgrid(tensor1, tensor2, indexing='xy')
 
 
-def get_minibatches(inputs: torch.Tensor, chunksize: Optional[int] = 1024 * 8):
-    r"""Takes a huge tensor (ray "bundle") and splits it into a list of minibatches.
-  Each element of the list (except possibly the last) has dimension `0` of length
-  `chunksize`.
-  """
-    return [inputs[i:i + chunksize] for i in range(0, inputs.shape[0], chunksize)]
+with open('configs/training_config.yml', 'r') as file:
+    training_config = yaml.safe_load(file)
 
+with open('configs/dataset_config.yml', 'r') as file:
+    dataset_config = yaml.safe_load(file)
+
+near_thresh = training_config['rendering_variables']['near_threshold']
+far_thresh = training_config['rendering_variables']['far_threshold']
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Load input images, poses, and intrinsics
-data = np.load("tiny_nerf_data.npz")
+
+# Height and width of each image
+height = dataset_config['image_height']
+width = dataset_config['image_width']
+data_file_name = dataset_config['filename']
+data = np.load(data_file_name)
 
 # Images
 images = data["images"]
@@ -37,14 +47,8 @@ tform_cam2world = data["poses"]
 tform_cam2world = torch.from_numpy(tform_cam2world).to(device)
 # Focal length (intrinsics)
 focal_length = data["focal"]
+print(f'focal: {focal_length}')
 focal_length = torch.from_numpy(focal_length).to(device)
-
-# Height and width of each image
-height, width = images.shape[1:3]
-
-# Near and far clipping thresholds for depth values.
-near_thresh = 2.
-far_thresh = 6.
 
 # Hold one image out (for test).
 testimg, testpose = images[101], tform_cam2world[101]
@@ -60,7 +64,7 @@ plt.show()
 # One iteration of TinyNeRF (forward pass).
 def run_one_iter_of_tinynerf(height, width, focal_length, tform_cam2world,
                              near_thresh, far_thresh, depth_samples_per_ray,
-                             encoding_function, get_minibatches_function):
+                             encoding_function):
     # Get the "bundle" of rays through all image pixels.
     ray_origins, ray_directions = get_ray_bundle(height, width, focal_length, tform_cam2world)
 
@@ -84,7 +88,8 @@ def run_one_iter_of_tinynerf(height, width, focal_length, tform_cam2world,
 
     # Split the encoded points into "chunks", run the model on all chunks, and
     # concatenate the results (to avoid out-of-memory issues).
-    batches = get_minibatches_function(encoded_points, chunksize=chunksize)
+    batches = torch.split(encoded_points, chunksize)
+
     predictions = []
     for batch in batches:
         predictions.append(model(batch))
@@ -109,20 +114,17 @@ Parameters for TinyNeRF training
 
 # Number of functions used in the positional encoding (Be sure to update the
 # model if this number changes).
-num_encoding_functions = 6
+#num_encoding_functions = 6
+num_encoding_functions = training_config['positional_encoding']['num_encoding_functions']
+
 # Specify encoding function.
 encode = lambda x: positional_encoding(x, num_encoding_functions=num_encoding_functions)
-# Number of depth samples along each ray.
-depth_samples_per_ray = 32
 
-# Chunksize (Note: this isn't batchsize in the conventional sense. This only
-# specifies the number of rays to be queried in one go. Backprop still happens
-# only after all rays from the current "bundle" are queried and rendered).
-chunksize = 16384  # Use chunksize of about 4096 to fit in ~1.4 GB of GPU memory.
+depth_samples_per_ray = training_config['rendering_variables']['depth_samples_per_ray']
+chunksize = training_config['training_variables']['chunksize']
 
-# Optimizer parameters
-lr = 5e-3
-num_iters = 1001
+lr = training_config['training_variables']['learning_rate']
+num_iters = training_config['training_variables']['num_iters']
 
 # Misc parameters
 display_every = 500  # Number of iters after which stats are displayed
@@ -134,10 +136,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 Train-Eval-Repeat!
 """
 
-# Seed RNG, for repeatability
-seed = 9458
-torch.manual_seed(seed)
-np.random.seed(seed)
+set_seed()
 
 # Lists to log metrics etc.
 psnrs = []
@@ -154,7 +153,7 @@ for i in range(num_iters):
     rgb_predicted = run_one_iter_of_tinynerf(height, width, focal_length,
                                              target_tform_cam2world, near_thresh,
                                              far_thresh, depth_samples_per_ray,
-                                             encode, get_minibatches)
+                                             encode)
 
     # Compute mean-squared error between the predicted and target images. Backprop!
     loss = torch.nn.functional.mse_loss(rgb_predicted, target_img)
@@ -168,7 +167,7 @@ for i in range(num_iters):
         rgb_predicted = run_one_iter_of_tinynerf(height, width, focal_length,
                                                  testpose, near_thresh,
                                                  far_thresh, depth_samples_per_ray,
-                                                 encode, get_minibatches)
+                                                 encode)
         loss = torch.nn.functional.mse_loss(rgb_predicted, target_img)
         print("Loss:", loss.item())
         psnr = -10. * torch.log10(loss)
