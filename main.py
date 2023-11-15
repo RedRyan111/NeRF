@@ -98,7 +98,7 @@ def run_one_iter_of_tinynerf(height, width, focal_length, tform_cam2world,
     radiance_field = torch.reshape(radiance_field_flattened, unflattened_shape)
     print(f'radiance field fin: {radiance_field_flattened.shape}')
     # Perform differentiable volume rendering to re-synthesize the RGB image.
-    rgb_predicted, _, _ = render_volume_density(radiance_field, depth_values)
+    rgb_predicted = render_volume_density(radiance_field, depth_values)
 
     return rgb_predicted
 
@@ -122,10 +122,10 @@ chunksize = 16384  # Use chunksize of about 4096 to fit in ~1.4 GB of GPU memory
 
 # Optimizer parameters
 lr = 5e-3
-num_iters = 1000
+num_iters = 1001
 
 # Misc parameters
-display_every = 100  # Number of iters after which stats are displayed
+display_every = 500  # Number of iters after which stats are displayed
 
 model = VeryTinyNerfModel(num_encoding_functions=num_encoding_functions).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)
@@ -149,8 +149,6 @@ for i in range(num_iters):
     target_img_idx = np.random.randint(images.shape[0])
     target_img = images[target_img_idx].to(device)
     target_tform_cam2world = tform_cam2world[target_img_idx].to(device)
-
-    #print(f'target cam2world: {target_tform_cam2world.shape}')
 
     # Run one iteration of TinyNeRF and get the rendered RGB image.
     rgb_predicted = run_one_iter_of_tinynerf(height, width, focal_length,
