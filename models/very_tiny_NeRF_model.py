@@ -2,9 +2,6 @@ import torch
 
 
 class VeryTinyNerfModel(torch.nn.Module):
-    r"""Define a "very tiny" NeRF model comprising three fully connected layers.
-    """
-
     def __init__(self, filter_size=128, num_encoding_functions=6):
         super(VeryTinyNerfModel, self).__init__()
         # Input layer (default: 39 -> 128)

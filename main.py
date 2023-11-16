@@ -8,14 +8,12 @@ from positional_encoding import positional_encoding
 # from ray_bundle import org_get_ray_bundle as get_ray_bundle
 import yaml
 
+
 # from query_points import org_compute_query_points_from_rays as compute_query_points_from_rays
 
 def set_seed(seed=9458):
     torch.manual_seed(seed)
     np.random.seed(seed)
-
-def meshgrid_xy(tensor1: torch.Tensor, tensor2: torch.Tensor) -> (torch.Tensor, torch.Tensor):
-    return torch.meshgrid(tensor1, tensor2, indexing='xy')
 
 
 with open('configs/training_config.yml', 'r') as file:
@@ -28,8 +26,6 @@ near_thresh = training_config['rendering_variables']['near_threshold']
 far_thresh = training_config['rendering_variables']['far_threshold']
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-# Load input images, poses, and intrinsics
 
 # Height and width of each image
 height = dataset_config['image_height']
@@ -94,13 +90,12 @@ for i in range(num_iters):
     target_img = images[target_img_idx].to(device)
     target_tform_cam2world = tform_cam2world[target_img_idx].to(device)
 
-    # Run one iteration of TinyNeRF and get the rendered RGB image.
     rgb_predicted = run_one_iter_of_tinynerf(model, chunksize, height, width, focal_length,
                                              target_tform_cam2world, near_thresh,
                                              far_thresh, depth_samples_per_ray,
                                              encode)
 
-    # Compute mean-squared error between the predicted and target images. Backprop!
+
     loss = torch.nn.functional.mse_loss(rgb_predicted, target_img)
     loss.backward()
     optimizer.step()
