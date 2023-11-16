@@ -21,7 +21,7 @@ def get_ray_bundle(height: int, width: int, focal_length: float, tform_cam2world
     row_meshgrid, col_meshgrid = torch.meshgrid(
         unit_torch_arange(height, focal_length, tform_cam2world),
         unit_torch_arange(width, focal_length, tform_cam2world)
-    ) # , indexing='xy'?
+    )
 
     directions = get_ray_directions_from_meshgrid(row_meshgrid, col_meshgrid)
 
