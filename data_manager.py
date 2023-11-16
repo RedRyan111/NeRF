@@ -6,6 +6,9 @@ import random
 
 class DataManager:
     def __init__(self, filename, device):
+        seed = 9458
+        torch.manual_seed(seed)
+        np.random.seed(seed)
         self.data = np.load(filename)
         self.images = torch.from_numpy(self.data['images']).to(device)
         self.poses = torch.from_numpy(self.data['poses']).to(device)

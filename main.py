@@ -3,7 +3,7 @@ import torch
 import matplotlib.pyplot as plt
 
 from data_manager import DataManager
-from run_NeRF import run_one_iter_of_tinynerf
+from run_NeRF import NeRF_forward_pass
 from models.very_tiny_NeRF_model import VeryTinyNerfModel
 from positional_encoding import positional_encoding
 import yaml
@@ -26,7 +26,11 @@ def set_seed(seed=9458):
     np.random.seed(seed)
 
 
-set_seed()
+#set_seed()
+seed= 9458
+torch.manual_seed(seed)
+np.random.seed(seed)
+
 
 with open('configs/training_config.yml', 'r') as file:
     training_config = yaml.safe_load(file)
@@ -57,9 +61,6 @@ display_every = 500  # Number of iters after which stats are displayed
 model = VeryTinyNerfModel(num_encoding_functions=num_encoding_functions).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
-"""
-Train-Eval-Repeat!
-"""
 
 psnrs = []
 test_img, test_pose = data_manager.get_random_image_and_pose_example()
@@ -68,10 +69,10 @@ for i in range(num_iters):
 
     target_img, target_tform_cam2world = data_manager.get_random_image_and_pose_example()
 
-    rgb_predicted = run_one_iter_of_tinynerf(model, height, width, focal_length,
-                                             target_tform_cam2world, near_thresh,
-                                             far_thresh, depth_samples_per_ray,
-                                             encode)
+    rgb_predicted = NeRF_forward_pass(model, height, width, focal_length,
+                                      target_tform_cam2world, near_thresh,
+                                      far_thresh, depth_samples_per_ray,
+                                      encode)
 
     loss = torch.nn.functional.mse_loss(rgb_predicted, target_img)
     loss.backward()
@@ -79,10 +80,10 @@ for i in range(num_iters):
     optimizer.zero_grad()
 
     if i % display_every == 0:
-        rgb_predicted = run_one_iter_of_tinynerf(model, height, width, focal_length,
-                                                 test_pose, near_thresh,
-                                                 far_thresh, depth_samples_per_ray,
-                                                 encode)
+        rgb_predicted = NeRF_forward_pass(model, height, width, focal_length,
+                                          test_pose, near_thresh,
+                                          far_thresh, depth_samples_per_ray,
+                                          encode)
         loss = torch.nn.functional.mse_loss(rgb_predicted, target_img)
         psnr = -10. * torch.log10(loss)
         psnrs.append(psnr.item())

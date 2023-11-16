@@ -2,7 +2,7 @@ import numpy as np
 import torch
 
 from query_points import compute_query_points_from_rays, org_compute_query_points_from_rays
-from ray_bundle import get_ray_bundle
+from ray_bundle import get_ray_origins_and_directions_from_pose
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -31,7 +31,7 @@ images = torch.from_numpy(images[:100, ..., :3]).to(device)
 print(f'cam2world: {tform_cam2world.shape}')
 
 # Get the "bundle" of rays through all image pixels.
-ray_origins, ray_directions = get_ray_bundle(height, width, focal_length, tform_cam2world)
+ray_origins, ray_directions = get_ray_origins_and_directions_from_pose(height, width, focal_length, tform_cam2world)
 
 # Sample query points along each ray
 query_points, depth_values = org_compute_query_points_from_rays(ray_origins, ray_directions, near_thresh, far_thresh, depth_samples_per_ray)

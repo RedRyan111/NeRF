@@ -1,5 +1,5 @@
 import torch
-from typing import Optional, Tuple
+from typing import Optional
 
 
 def compute_query_points_from_rays(

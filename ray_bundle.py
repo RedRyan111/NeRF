@@ -14,7 +14,7 @@ class CameraToWorldSpatialTransformationManager:
         return self.translation.expand(ray_bundle.shape)
 
 
-def get_ray_bundle(height: int, width: int, focal_length: float, tform_cam2world: torch.Tensor):
+def get_ray_origins_and_directions_from_pose(height: int, width: int, focal_length: float, tform_cam2world: torch.Tensor):
     print(f'bundle input: {tform_cam2world.shape}')
     cam2world = CameraToWorldSpatialTransformationManager(tform_cam2world)
 

@@ -1,6 +1,6 @@
 import torch
 
-from ray_bundle import get_ray_bundle
+from ray_bundle import get_ray_origins_and_directions_from_pose
 
 
 def meshgrid_xy(tensor1: torch.Tensor, tensor2: torch.Tensor) -> (torch.Tensor, torch.Tensor):
@@ -60,7 +60,7 @@ c2w_full = torch.stack([c2w1, c2w2], dim=0)
 print(f'full: {c2w_full.shape}')
 
 org_o, org_d = original_get_ray_bundle(height, width, focal_length, c2w_full)
-my_o, my_d = get_ray_bundle(height, width, focal_length, c2w_full)
+my_o, my_d = get_ray_origins_and_directions_from_pose(height, width, focal_length, c2w_full)
 
 print(f'original: ')
 print(org_d)
