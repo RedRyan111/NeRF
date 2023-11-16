@@ -3,7 +3,7 @@ import torch
 import matplotlib.pyplot as plt
 
 from data_manager import DataManager
-from run_NeRF import NeRF_forward_pass
+from nerf_forward_pass import nerf_forward_pass
 from models.very_tiny_NeRF_model import VeryTinyNerfModel
 from positional_encoding import positional_encoding
 import yaml
@@ -69,7 +69,7 @@ for i in range(num_iters):
 
     target_img, target_tform_cam2world = data_manager.get_random_image_and_pose_example()
 
-    rgb_predicted = NeRF_forward_pass(model, height, width, focal_length,
+    rgb_predicted = nerf_forward_pass(model, height, width, focal_length,
                                       target_tform_cam2world, near_thresh,
                                       far_thresh, depth_samples_per_ray,
                                       encode)
@@ -80,7 +80,7 @@ for i in range(num_iters):
     optimizer.zero_grad()
 
     if i % display_every == 0:
-        rgb_predicted = NeRF_forward_pass(model, height, width, focal_length,
+        rgb_predicted = nerf_forward_pass(model, height, width, focal_length,
                                           test_pose, near_thresh,
                                           far_thresh, depth_samples_per_ray,
                                           encode)
