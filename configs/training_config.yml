@@ -9,8 +9,6 @@ rendering_variables:
   depth_samples_per_ray: 32
 
 training_variables:
-  # chunking the rays bundles into smaller chunks to prevent full memory
-  chunksize: 16384
   learning_rate: .005 #5e-3
   # number of times the network will be trained on a new camera
   num_iters: 1001

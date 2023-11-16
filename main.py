@@ -44,7 +44,6 @@ focal_length = data_manager.focal
 near_thresh = training_config['rendering_variables']['near_threshold']
 far_thresh = training_config['rendering_variables']['far_threshold']
 depth_samples_per_ray = training_config['rendering_variables']['depth_samples_per_ray']
-chunksize = training_config['training_variables']['chunksize']
 lr = training_config['training_variables']['learning_rate']
 num_iters = training_config['training_variables']['num_iters']
 num_encoding_functions = training_config['positional_encoding']['num_encoding_functions']
@@ -69,7 +68,7 @@ for i in range(num_iters):
 
     target_img, target_tform_cam2world = data_manager.get_random_image_and_pose_example()
 
-    rgb_predicted = run_one_iter_of_tinynerf(model, chunksize, height, width, focal_length,
+    rgb_predicted = run_one_iter_of_tinynerf(model, height, width, focal_length,
                                              target_tform_cam2world, near_thresh,
                                              far_thresh, depth_samples_per_ray,
                                              encode)
@@ -80,8 +79,7 @@ for i in range(num_iters):
     optimizer.zero_grad()
 
     if i % display_every == 0:
-        # Render the held-out view
-        rgb_predicted = run_one_iter_of_tinynerf(model, chunksize, height, width, focal_length,
+        rgb_predicted = run_one_iter_of_tinynerf(model, height, width, focal_length,
                                                  test_pose, near_thresh,
                                                  far_thresh, depth_samples_per_ray,
                                                  encode)

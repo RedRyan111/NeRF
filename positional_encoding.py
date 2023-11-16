@@ -4,7 +4,7 @@ import torch
 def positional_encoding(tensor, num_encoding_functions=6, include_input=True, log_sampling=True) -> torch.Tensor:
     frequency_bands = 2. ** torch.linspace(0., num_encoding_functions - 1, num_encoding_functions).to(tensor)
 
-    mul_frequencies = torch.einsum('ij,k->ijk', tensor, frequency_bands)
+    mul_frequencies = torch.einsum('ijkp,l->ijkpl', tensor, frequency_bands)
     sin_frequencies = torch.sin(mul_frequencies)
     cos_frequencies = torch.cos(mul_frequencies)
 
@@ -14,6 +14,5 @@ def positional_encoding(tensor, num_encoding_functions=6, include_input=True, lo
         broadcastable_tensor = tensor.reshape(*tensor.shape, 1)
         full_frequencies = torch.cat([broadcastable_tensor, full_frequencies], dim=-1)
 
-    last_index_shape = 2 * num_encoding_functions * tensor.shape[-1] + include_input * tensor.shape[-1]
-    full_frequencies = full_frequencies.reshape(-1, last_index_shape)
+    full_frequencies = full_frequencies.reshape(tensor.shape[0], tensor.shape[1], tensor.shape[2], -1)
     return full_frequencies
