@@ -15,12 +15,11 @@ class CameraToWorldSpatialTransformationManager:
 
 
 def get_ray_origins_and_directions_from_pose(height: int, width: int, focal_length: float, tform_cam2world: torch.Tensor):
-    print(f'bundle input: {tform_cam2world.shape}')
     cam2world = CameraToWorldSpatialTransformationManager(tform_cam2world)
 
     row_meshgrid, col_meshgrid = torch.meshgrid(
-        unit_torch_arange(height, focal_length, tform_cam2world),
-        unit_torch_arange(width, focal_length, tform_cam2world)
+        unit_length_torch_arange(height, focal_length, tform_cam2world),
+        unit_length_torch_arange(width, focal_length, tform_cam2world)
     )
 
     directions = get_ray_directions_from_meshgrid(row_meshgrid, col_meshgrid)
@@ -41,7 +40,7 @@ def get_ray_directions_from_meshgrid(row_meshgrid, col_meshgrid):
     return directions
 
 
-def unit_torch_arange(full_range, focal_length, device):
+def unit_length_torch_arange(full_range, focal_length, device):
     bound = .5 * full_range / focal_length
     return torch.arange(-1 * bound, bound, 1 / focal_length).to(device)
 

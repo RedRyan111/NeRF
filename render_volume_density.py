@@ -1,14 +1,12 @@
 import torch
 
 
-def render_volume_density(radiance_field: torch.Tensor, depth_values: torch.Tensor) -> torch.Tensor:
-    absorption_coeff = torch.nn.functional.relu(radiance_field[..., 3])
-    rgb = torch.sigmoid(radiance_field[..., :3])
+def render_volume_density(rgb: torch.Tensor, density: torch.Tensor, depth_values: torch.Tensor) -> torch.Tensor:
 
     #depth_differences = my_depth_differences(depth_values)
     depth_differences = get_differences_in_depth_values(depth_values)
 
-    transmittance = torch.exp(-absorption_coeff * depth_differences)
+    transmittance = torch.exp(-density * depth_differences)
     accumulated_transmittance = cumprod_exclusive(transmittance)
     opacity = 1. - transmittance
 

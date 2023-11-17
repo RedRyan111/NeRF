@@ -1,12 +1,13 @@
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
-
+from tqdm import tqdm
 from data_manager import DataManager
 from nerf_forward_pass import nerf_forward_pass
-from models.very_tiny_NeRF_model import VeryTinyNerfModel
+from models.small_NeRF_model import SmallNerfModel
 from positional_encoding import positional_encoding
 import yaml
+import random
 
 
 def display_image(psnrs, rgb_predicted):
@@ -24,12 +25,10 @@ def display_image(psnrs, rgb_predicted):
 def set_seed(seed=9458):
     torch.manual_seed(seed)
     np.random.seed(seed)
+    random.seed(seed)
 
 
-#set_seed()
-seed= 9458
-torch.manual_seed(seed)
-np.random.seed(seed)
+set_seed()
 
 
 with open('configs/training_config.yml', 'r') as file:
@@ -58,21 +57,23 @@ encode = lambda x: positional_encoding(x, num_encoding_functions=num_encoding_fu
 # Misc parameters
 display_every = 500  # Number of iters after which stats are displayed
 
-model = VeryTinyNerfModel(num_encoding_functions=num_encoding_functions).to(device)
+model = SmallNerfModel(num_encoding_functions=num_encoding_functions).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
 
 psnrs = []
 test_img, test_pose = data_manager.get_random_image_and_pose_example()
+loss = 0
+for i in tqdm(range(num_iters)):
 
-for i in range(num_iters):
-
+    #make better data loader
     target_img, target_tform_cam2world = data_manager.get_random_image_and_pose_example()
 
     rgb_predicted = nerf_forward_pass(model, height, width, focal_length,
                                       target_tform_cam2world, near_thresh,
                                       far_thresh, depth_samples_per_ray,
                                       encode)
+
 
     loss = torch.nn.functional.mse_loss(rgb_predicted, target_img)
     loss.backward()

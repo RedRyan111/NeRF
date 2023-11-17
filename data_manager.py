@@ -21,9 +21,9 @@ class DataManager:
         self.image_height = self.images.shape[1]
         self.image_width = self.images.shape[2]
 
-        self.print_data_info()
-        self.print_example_image_data()
-        self.print_data_camera_poses_and_directions()
+        #self.print_data_info()
+        #self.print_example_image_data()
+        #self.print_data_camera_poses_and_directions()
 
     def get_example_index(self):
         return random.randint(0, self.num_of_images-1)

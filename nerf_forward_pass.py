@@ -15,8 +15,8 @@ def nerf_forward_pass(model, height, width, focal_length, tform_cam2world,
 
     encoded_points = encoding_function(query_points)
 
-    radiance_field = model(encoded_points)
+    rgb, density = model(encoded_points)
 
-    rgb_predicted = render_volume_density(radiance_field, depth_values)
+    rgb_predicted = render_volume_density(rgb, density, depth_values)
 
     return rgb_predicted
