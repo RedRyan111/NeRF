@@ -28,6 +28,12 @@ class DataManager:
     def get_example_index(self):
         return random.randint(0, self.num_of_images-1)
 
+    def get_image_and_pose(self, index):
+        index = index % self.num_of_images
+        image = self.images[index]
+        pose = self.poses[index]
+        return image, pose
+
     def get_random_image_and_pose_example(self):
         index = self.get_example_index()
         image = self.images[index]

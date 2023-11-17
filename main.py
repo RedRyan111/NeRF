@@ -30,7 +30,6 @@ def set_seed(seed=9458):
 
 set_seed()
 
-
 with open('configs/training_config.yml', 'r') as file:
     training_config = yaml.safe_load(file)
 
@@ -60,20 +59,17 @@ display_every = 500  # Number of iters after which stats are displayed
 model = SmallNerfModel(num_encoding_functions=num_encoding_functions).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
-
 psnrs = []
 test_img, test_pose = data_manager.get_random_image_and_pose_example()
 loss = 0
 for i in tqdm(range(num_iters)):
 
-    #make better data loader
-    target_img, target_tform_cam2world = data_manager.get_random_image_and_pose_example()
+    target_img, target_tform_cam2world = data_manager.get_image_and_pose(i)
 
     rgb_predicted = nerf_forward_pass(model, height, width, focal_length,
                                       target_tform_cam2world, near_thresh,
                                       far_thresh, depth_samples_per_ray,
                                       encode)
-
 
     loss = torch.nn.functional.mse_loss(rgb_predicted, target_img)
     loss.backward()
