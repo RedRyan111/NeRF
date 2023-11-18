@@ -14,20 +14,37 @@ class CameraToWorldSpatialTransformationManager:
         return self.translation.expand(ray_bundle.shape)
 
 
-def get_ray_origins_and_directions_from_pose(height: int, width: int, focal_length: float, tform_cam2world: torch.Tensor):
-    cam2world = CameraToWorldSpatialTransformationManager(tform_cam2world)
+class RayOriginAndDirectionManager:
+    def __init__(self, data_manager, device):
+        self.height = data_manager.image_height
+        self.width = data_manager.image_width
+        self.focal_length = data_manager.focal
+        self.device = device
 
-    row_meshgrid, col_meshgrid = torch.meshgrid(
-        unit_length_torch_arange(height, focal_length, tform_cam2world),
-        unit_length_torch_arange(width, focal_length, tform_cam2world)
-    )
+        self.directions = self.get_ray_directions().to(device)
 
-    directions = get_ray_directions_from_meshgrid(row_meshgrid, col_meshgrid)
+    def get_ray_directions(self):
+        row_meshgrid, col_meshgrid = torch.meshgrid(
+            unit_length_torch_arange(self.height, self.focal_length),
+            unit_length_torch_arange(self.width, self.focal_length)
+        )
 
-    ray_directions = cam2world.transform_ray_bundle(directions)
-    ray_origins = cam2world.expand_origin_to_match_ray_bundle_shape(ray_directions)
+        return get_ray_directions_from_meshgrid(row_meshgrid, col_meshgrid)
 
-    return ray_origins, ray_directions
+    def get_ray_origins_and_directions_from_pose(self, tform_cam2world: torch.Tensor):
+        cam2world = CameraToWorldSpatialTransformationManager(tform_cam2world)
+
+        row_meshgrid, col_meshgrid = torch.meshgrid(
+            unit_length_torch_arange(self.height, self.focal_length).to(self.device),
+            unit_length_torch_arange(self.width, self.focal_length).to(self.device)
+        )
+
+        directions = get_ray_directions_from_meshgrid(row_meshgrid, col_meshgrid)
+
+        ray_directions = cam2world.transform_ray_bundle(directions)
+        ray_origins = cam2world.expand_origin_to_match_ray_bundle_shape(ray_directions)
+
+        return ray_origins, ray_directions
 
 
 def get_ray_directions_from_meshgrid(row_meshgrid, col_meshgrid):
@@ -40,7 +57,6 @@ def get_ray_directions_from_meshgrid(row_meshgrid, col_meshgrid):
     return directions
 
 
-def unit_length_torch_arange(full_range, focal_length, device):
+def unit_length_torch_arange(full_range, focal_length):
     bound = .5 * full_range / focal_length
-    return torch.arange(-1 * bound, bound, 1 / focal_length).to(device)
-
+    return torch.arange(-1 * bound, bound, 1 / focal_length)

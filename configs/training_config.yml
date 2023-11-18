@@ -1,6 +1,5 @@
 positional_encoding:
-  #num_encoding_functions: 6
-  num_encoding_functions: 6
+  num_encoding_functions: 10
 
 rendering_variables:
   # Near and far clipping thresholds for depth values.
@@ -10,6 +9,8 @@ rendering_variables:
   depth_samples_per_ray: 32
 
 training_variables:
-  learning_rate: .0001 #5e-3
-  # number of times the network will be trained on a new camera
-  num_iters: 3001
+  learning_rate: .0002
+  num_iters: 8001
+
+display_variables:
+  display_every: 500
