@@ -47,15 +47,7 @@ training_config = load_training_config_yaml()
 device = get_tensor_device()
 data_manager = DataManager('tiny_nerf_data.npz', device=device)
 
-# Image parameters
-height = data_manager.image_height
-width = data_manager.image_width
-focal_length = data_manager.focal
-
 # training parameters
-near_thresh = training_config['rendering_variables']['near_threshold']
-far_thresh = training_config['rendering_variables']['far_threshold']
-depth_samples_per_ray = training_config['rendering_variables']['depth_samples_per_ray']
 lr = training_config['training_variables']['learning_rate']
 num_iters = training_config['training_variables']['num_iters']
 num_encoding_functions = training_config['positional_encoding']['num_encoding_functions']
@@ -87,7 +79,7 @@ for i in tqdm(range(num_iters)):
     loss.backward()
     optimizer.step()
     optimizer.zero_grad()
-    model.zero_grad()
+    #model.zero_grad()
 
     if i % display_every == 0:
         psnr = -10. * torch.log10(loss)

@@ -1,5 +1,4 @@
 from torch import nn
-
 from render_volume_density import render_volume_density
 
 
