@@ -1,39 +1,18 @@
-import numpy as np
 import torch
-import matplotlib.pyplot as plt
 from tqdm import tqdm
 from data_manager import DataManager
+from display_helper import display_image
 from nerf_forward_pass import nerf_forward_pass
 from models.small_NeRF_model import SmallNerfModel
 from positional_encoding import positional_encoding
-import yaml
-import random
 
+from setup import set_random_seeds, load_training_config_yaml, get_tensor_device
 
-def display_image(psnrs, rgb_predicted):
-    iternums = [i for i in range(len(psnrs))]
-    plt.figure(figsize=(10, 4))
-    plt.subplot(121)
-    plt.imshow(rgb_predicted.detach().cpu().numpy())
-    plt.title(f"Iteration {i}")
-    plt.subplot(122)
-    plt.plot(iternums, psnrs)
-    plt.title("PSNR")
-    plt.show()
+set_random_seeds()
 
+training_config = load_training_config_yaml()
 
-def set_seed(seed=9458):
-    torch.manual_seed(seed)
-    np.random.seed(seed)
-    random.seed(seed)
-
-
-set_seed()
-
-with open('configs/training_config.yml', 'r') as file:
-    training_config = yaml.safe_load(file)
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = get_tensor_device()
 
 data_manager = DataManager('tiny_nerf_data.npz', device=device)
 
@@ -61,7 +40,6 @@ optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
 psnrs = []
 test_img, test_pose = data_manager.get_random_image_and_pose_example()
-loss = 0
 for i in tqdm(range(num_iters)):
 
     target_img, target_tform_cam2world = data_manager.get_image_and_pose(i)
