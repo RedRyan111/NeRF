@@ -1,4 +1,4 @@
-# Tiny_NeRF
+# NeRF
 
 An unofficial Pytorch implementation of the paper
 
