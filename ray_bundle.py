@@ -14,7 +14,7 @@ class CameraToWorldSpatialTransformationManager:
         return self.translation.expand(ray_bundle.shape)
 
 
-class RayOriginAndDirectionManager:
+class RaysFromCameraBuilder:
     def __init__(self, data_manager, device):
         self.height = data_manager.image_height
         self.width = data_manager.image_width
@@ -31,8 +31,8 @@ class RayOriginAndDirectionManager:
 
         return get_ray_directions_from_meshgrid(row_meshgrid, col_meshgrid)
 
-    def get_ray_origins_and_directions_from_pose(self, tform_cam2world: torch.Tensor):
-        cam2world = CameraToWorldSpatialTransformationManager(tform_cam2world)
+    def ray_origins_and_directions_from_pose(self, camera_to_world_transform: torch.Tensor):
+        cam2world = CameraToWorldSpatialTransformationManager(camera_to_world_transform)
 
         row_meshgrid, col_meshgrid = torch.meshgrid(
             unit_length_torch_arange(self.height, self.focal_length).to(self.device),
@@ -57,6 +57,6 @@ def get_ray_directions_from_meshgrid(row_meshgrid, col_meshgrid):
     return directions
 
 
-def unit_length_torch_arange(full_range, focal_length):
-    bound = .5 * full_range / focal_length
-    return torch.arange(-1 * bound, bound, 1 / focal_length)
+def unit_length_torch_arange(full_range, resolution):
+    bound = .5 * full_range / resolution
+    return torch.arange(-1 * bound, bound, 1 / resolution)

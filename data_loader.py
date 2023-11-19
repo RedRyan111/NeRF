@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 import random
 
 
-class DataManager:
+class DataLoader:
     def __init__(self, filename, device):
         seed = 9458
         torch.manual_seed(seed)

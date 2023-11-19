@@ -1,3 +1,4 @@
 .idea/
 __pycache__/
 tiny_nerf_data.npz
+nerf_example_data/

@@ -17,7 +17,7 @@ def display_image(iteration, display_every, psnrs, rgb_predicted):
     plt.show()
 
 
-def save_image(iteration, display_every, psnrs, rgb_predicted):
+def save_image(display_every, psnrs, rgb_predicted):
     image_data = rgb_predicted.detach().cpu().numpy()  # Replace with your image data
     x_values = [i * display_every for i in range(len(psnrs))]  # Replace with your x values
     y_values = psnrs  # Replace with your y values
@@ -31,7 +31,7 @@ def save_image(iteration, display_every, psnrs, rgb_predicted):
 
     # Plot the scatter plot in the second subplot
     ax2.plot(x_values, y_values)
-    ax2.set_title(f"Iteration {iteration}")
+    ax2.set_title(f"Peak Signal To Noise Ratio vs Training Iteration")
 
     # Adjust layout to prevent clipping of titles
     plt.tight_layout()
