@@ -1,7 +1,6 @@
 # Tiny_NeRF
 
-An unofficial Pytorch implementation of the paper [NeRF: Representing Scenes as Neural Radiance Fields for View Synthesis]([https://www.google.com](https://arxiv.org/abs/2003.08934))
-based on the original code [here](https://github.com/krrish94/nerf-pytorch) and another PyTorch implementation found [here](https://github.com/bmild/nerf)
+An unofficial Pytorch implementation of the paper
 
 [NeRF: Representing Scenes as Neural Radiance Fields for View Synthesis](http://tancik.com/nerf)  
  [Ben Mildenhall](https://people.eecs.berkeley.edu/~bmild/)\*<sup>1</sup>,
@@ -13,5 +12,7 @@ based on the original code [here](https://github.com/krrish94/nerf-pytorch) and 
  <sup>1</sup>UC Berkeley, <sup>2</sup>Google Research, <sup>3</sup>UC San Diego  
   \*denotes equal contribution
  
+This code is based on the original code by [krrish94](https://github.com/krrish94/nerf-pytorch) and another PyTorch implementation by [bmild](https://github.com/bmild/nerf)
+
 
 ![Final Training Results](https://github.com/RedRyan111/Tiny_NeRF/blob/main/results/Training_Result.png)
