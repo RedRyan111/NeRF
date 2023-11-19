@@ -1,7 +1,7 @@
 import torch
 from tqdm import tqdm
 from data_manager import DataManager
-from display_helper import display_image
+from display_helper import display_image, create_video, save_image
 from models.small_NeRF_model import SmallNerfModel
 from nerf_forward_pass import NeRFManager
 from positional_encoding import positional_encoding
@@ -9,38 +9,6 @@ from query_points import QueryPointSamplerFromRays
 from ray_bundle import RayOriginAndDirectionManager
 from setup import set_random_seeds, load_training_config_yaml, get_tensor_device
 
-'''
-def save_video(data_manager):
-    target_img, target_tform_cam2world = data_manager.get_image_and_pose(i)
-
-    frames = []
-    fig = plt.figure()
-    for i in range(360):
-        new_image = get_next_frame(target_tform_cam2world, i)
-        frames.append([plt.imshow(new_image, cmap=cm.Greys_r, animated=True)])
-
-    ani = animation.ArtistAnimation(fig, frames, interval=50, blit=True,
-                                    repeat_delay=1000)
-    ani.save('result/movie.mp4')
-    # plt.show()
-
-
-def get_next_frame(cam2world, angle):
-    rot_matrix = torch.tensor([
-        [torch.cos(angle), -torch.sin(angle), 0],
-        [torch.sin(angle), torch.cos(angle), 0],
-        [0, 0, 1]
-    ])
-
-    cam2world[:3, :3] = torch.matmul(cam2world[:3, :3], rot_matrix)
-
-    rgb_predicted = nerf_forward_pass(model, height, width, focal_length,
-                                      cam2world, near_thresh,
-                                      far_thresh, depth_samples_per_ray,
-                                      encode)
-
-    return rgb_predicted
-'''
 
 set_random_seeds()
 training_config = load_training_config_yaml()
@@ -79,7 +47,6 @@ for i in tqdm(range(num_iters)):
     loss.backward()
     optimizer.step()
     optimizer.zero_grad()
-    #model.zero_grad()
 
     if i % display_every == 0:
         psnr = -10. * torch.log10(loss)
@@ -87,6 +54,10 @@ for i in tqdm(range(num_iters)):
 
         print("Loss:", loss.item())
         display_image(i, display_every, psnrs, rgb_predicted)
-        #save_video(data_manager)
+
+    if i == num_iters-1:
+        save_image(i, display_every, psnrs, rgb_predicted)
+        create_video(NeRF_manager, device)
 
 print('Done!')
+

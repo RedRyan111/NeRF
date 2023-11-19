@@ -15,6 +15,7 @@ class QueryPointSamplerFromRays:
                                        ray_directions: torch.Tensor,
                                        randomize: Optional[bool] = True
                                        ) -> (torch.Tensor, torch.Tensor):
+
         depth_values = torch.linspace(self.near_thresh, self.far_thresh, self.depth_samples_per_ray).to(ray_origins)
         if randomize:
             # noise_shape = (width, height, num_samples)

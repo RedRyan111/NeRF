@@ -2,15 +2,13 @@ positional_encoding:
   num_encoding_functions: 10
 
 rendering_variables:
-  # Near and far clipping thresholds for depth values.
   near_threshold: 2.
   far_threshold: 6.
-  #number of samples along a chosen camera array to create
   depth_samples_per_ray: 32
 
 training_variables:
   learning_rate: .0002
-  num_iters: 8001
+  num_iters: 7001
 
 display_variables:
   display_every: 500

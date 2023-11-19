@@ -15,5 +15,6 @@ def load_training_config_yaml():
         training_config = yaml.safe_load(file)
         return training_config
 
+
 def get_tensor_device():
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
