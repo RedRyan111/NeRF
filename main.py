@@ -1,6 +1,10 @@
+from typing import Optional
+
 import torch
+from matplotlib import pyplot as plt
 from tqdm import tqdm
-from data_loader import DataLoader
+# from data_loader import DataLoader
+from lego_data_loader import DataLoader
 from display_helper import display_image, create_video, save_image
 from models.small_NeRF_model import SmallNerfModel
 from nerf_forward_pass import NeRFManager
@@ -10,10 +14,19 @@ from ray_bundle import RaysFromCameraBuilder
 from setup_utils import set_random_seeds, load_training_config_yaml, get_tensor_device
 
 
+def get_minibatches(inputs: torch.Tensor, chunksize: Optional[int] = 2):
+    return [inputs[i:i + chunksize] for i in range(0, inputs.shape[0], chunksize)]
+
+
 set_random_seeds()
 training_config = load_training_config_yaml()
 device = get_tensor_device()
-data_manager = DataLoader('tiny_nerf_data.npz', device=device)
+# data_manager = DataLoader('tiny_nerf_data.npz', device=device)
+data_manager = DataLoader(device)
+
+print(f'data manager poses')
+print(data_manager.poses.shape)
+print(data_manager.poses[0])
 
 # training parameters
 lr = training_config['training_variables']['learning_rate']
@@ -33,32 +46,33 @@ optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 # Setup classes
 query_sampler = QueryPointSamplerFromRays(training_config)
 rays_from_camera_builder = RaysFromCameraBuilder(data_manager, device)
-NeRF_manager = NeRFManager(encode, rays_from_camera_builder, query_sampler, model)
+NeRF_manager = NeRFManager(encode, rays_from_camera_builder, query_sampler)
 
 psnrs = []
 test_img, test_pose = data_manager.get_random_image_and_pose_example()
+#plt.imshow(test_img.cpu())
+#print(f'test image: {test_img.shape}')
+#for row in test_img.cpu():
+#    for col in row:
+#        if col[0] != 0 and col[1] != 0 and col[2] != 0:
+#            print(col)
 for i in tqdm(range(num_iters)):
 
     target_img, target_tform_cam2world = data_manager.get_image_and_pose(i)
 
-    rgb_predicted = NeRF_manager.forward(target_tform_cam2world)
+    target_img = target_img.reshape(-1, 3)
 
-    loss = torch.nn.functional.mse_loss(rgb_predicted, target_img)
-    loss.backward()
-
-    optimizer.step()
-    optimizer.zero_grad()
+    rgb_predicted, loss = NeRF_manager.forward(model, target_tform_cam2world, target_img, optimizer)
 
     if i % display_every == 0:
         psnr = -10. * torch.log10(loss)
         psnrs.append(psnr.item())
 
         print("Loss:", loss.item())
-        display_image(i, display_every, psnrs, rgb_predicted)
+        display_image(i, display_every, psnrs, rgb_predicted.clip(0, 255)/255)
 
-    if i == num_iters-1:
+    if i == num_iters - 1:
         save_image(display_every, psnrs, rgb_predicted)
         create_video(NeRF_manager, device)
 
 print('Done!')
-

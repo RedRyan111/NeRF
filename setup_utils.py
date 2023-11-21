@@ -4,7 +4,8 @@ import torch
 import yaml
 
 
-def set_random_seeds(seed=9458):
+#def set_random_seeds(seed=9458):
+def set_random_seeds(seed=2000):
     torch.manual_seed(seed)
     np.random.seed(seed)
     random.seed(seed)
