@@ -9,7 +9,9 @@ def render_volume_density(rgb: torch.Tensor, density: torch.Tensor, depth_values
     accumulated_transmittance = cumprod_exclusive(transmittance)
     opacity = 1. - transmittance
 
-    rgb_map = torch.einsum('ij,ik,ijl->il', opacity, accumulated_transmittance, rgb)
+    #rgb_map = torch.einsum('ij,ik,ijl->il', opacity, accumulated_transmittance, rgb)
+    #print(f'opacity: {opacity.shape}, acc trans: {accumulated_transmittance.shape} rgb: {rgb.shape}')
+    rgb_map = torch.einsum('ik,ik,ikl->il', opacity, accumulated_transmittance, rgb)
 
     return rgb_map
 
@@ -35,14 +37,17 @@ def my_depth_differences(depth_values):
 
 
 def cumprod_exclusive(tensor: torch.Tensor) -> torch.Tensor:
+    #print(f'cum prod 1: {tensor.shape}')
     tensor = get_rid_of_last_index_of_last_dimension(tensor)
     cumprod = torch.cumprod(tensor, dim=-1)
+    #print(f'cum prod 2: {cumprod.shape}')
     cumprod = add_ones_to_first_index_of_last_dimension(cumprod)
+    #print(f'cum prod 3: {cumprod.shape}')
     return cumprod
 
 
 def add_ones_to_first_index_of_last_dimension(tensor):
-    ones = torch.ones_like(tensor).to(tensor)
+    ones = torch.ones((tensor.shape[0], 1)).to(tensor)
     tensor = torch.cat((ones, tensor), dim=-1)
     return tensor
 
