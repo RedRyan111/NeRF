@@ -23,8 +23,8 @@ set_random_seeds()
 training_config = load_training_config_yaml()
 device = get_tensor_device()
 print(f'device: {device}')
-data_manager = DataLoader('tiny_nerf_data.npz', device)
-#data_manager = DataLoader(device)
+#data_manager = DataLoader('tiny_nerf_data.npz', device)
+data_manager = DataLoader(device)
 
 print(f'data manager poses')
 print(data_manager.poses.shape)
@@ -43,8 +43,8 @@ display_every = training_config['display_variables']['display_every']
 encode = lambda x: positional_encoding(x, num_encoding_functions)
 
 # Initialize model and optimizer
-model = TinyNerfModel(num_encoding_functions).to(device)
-#model = SmallNerfModel(num_encoding_functions).to(device)
+#model = TinyNerfModel(num_encoding_functions).to(device)
+model = SmallNerfModel(num_encoding_functions).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
 # Setup classes
@@ -67,7 +67,7 @@ for i in tqdm(range(num_iters)):
         psnrs.append(psnr.item())
 
         print("Loss:", loss.item())
-        display_image(i, display_every, psnrs, rgb_predicted)#/255)
+        display_image(i, display_every, psnrs, rgb_predicted)
 
     if i == num_iters - 1:
         save_image(display_every, psnrs, rgb_predicted)

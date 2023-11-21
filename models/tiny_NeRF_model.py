@@ -21,5 +21,5 @@ class TinyNerfModel(torch.nn.Module):
         x = self.relu(self.layer2(x))
         # x = self.layer3(x)
         rgb = self.sig(self.rgb_layer(x))
-        density = self.sig(self.density(x))*10
+        density = self.relu(self.density(x))
         return rgb, torch.squeeze(density)
