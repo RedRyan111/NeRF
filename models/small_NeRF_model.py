@@ -5,6 +5,7 @@ class SmallNerfModel(torch.nn.Module):
     def __init__(self, num_encoding_functions):
         super(SmallNerfModel, self).__init__()
         filter_size = 128
+
         self.layer1 = torch.nn.Linear(3 + 3 * 2 * num_encoding_functions, filter_size)
         self.layer2 = torch.nn.Linear(filter_size, filter_size)
         self.layer3 = torch.nn.Linear(filter_size, filter_size)
@@ -28,7 +29,7 @@ class SmallNerfModel(torch.nn.Module):
         y = self.relu(self.layer4(y))
         y = self.relu(self.layer5(y))
 
-        rgb = self.relu(self.rgb_layer(y))
+        rgb = self.sig(self.rgb_layer(y))
         density = self.relu(self.density_layer(y))
         density = torch.squeeze(density)
 

@@ -23,7 +23,7 @@ class DataLoader:
 
         self.images = torch.from_numpy(self.get_images()).type(torch.FloatTensor).to(device)
         self.poses = torch.from_numpy(self.get_poses()).type(torch.FloatTensor).to(device)
-        self.focal = 128#torch.from_numpy(np.array([128.0])).to(device)
+        self.focal = 1200#torch.from_numpy(np.array([128.0])).to(device)
 
         self.num_of_images = self.images.shape[0]
 
