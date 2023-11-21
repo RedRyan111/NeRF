@@ -28,7 +28,7 @@ class SmallNerfModel(torch.nn.Module):
         y = self.relu(self.layer4(y))
         y = self.relu(self.layer5(y))
 
-        rgb = self.sig(self.rgb_layer(y))
+        rgb = self.relu(self.rgb_layer(y))
         density = self.relu(self.density_layer(y))
         density = torch.squeeze(density)
 

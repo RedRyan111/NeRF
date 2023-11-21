@@ -1,6 +1,7 @@
 import torch
 
 
+#orientation is filled with zeros
 class CameraToWorldSpatialTransformationManager:
     def __init__(self, spatial_matrix):
         self.spatial_matrix = spatial_matrix
@@ -40,7 +41,6 @@ class RaysFromCameraBuilder:
         )
 
         directions = get_ray_directions_from_meshgrid(row_meshgrid, col_meshgrid)
-
         ray_directions = cam2world.transform_ray_bundle(directions)
         ray_origins = cam2world.expand_origin_to_match_ray_bundle_shape(ray_directions)
 

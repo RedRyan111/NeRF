@@ -7,8 +7,8 @@ rendering_variables:
   depth_samples_per_ray: 32
 
 training_variables:
-  learning_rate: .0002
+  learning_rate: .00001
   num_iters: 7001
 
 display_variables:
-  display_every: 500
+  display_every: 2
