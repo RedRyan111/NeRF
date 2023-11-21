@@ -21,7 +21,7 @@ class DataLoader:
         self.train_data = json.load(f)
         f.close()
 
-        self.images = torch.from_numpy(self.get_images()).type(torch.FloatTensor).to(device)
+        self.images = torch.from_numpy(self.get_images()).type(torch.FloatTensor).to(device)/255
         self.poses = torch.from_numpy(self.get_poses()).type(torch.FloatTensor).to(device)
         self.focal = 1200#torch.from_numpy(np.array([128.0])).to(device)
 

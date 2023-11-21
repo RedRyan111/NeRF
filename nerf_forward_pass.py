@@ -25,7 +25,7 @@ class NeRFManager(nn.Module):
 
         rgb_predicted = []
         loss_sum = 0
-        chunksize = 1000
+        chunksize = 7000
         num_of_chunks = encoded_points_example.shape[0] // chunksize
         for j in range(0, encoded_points_example.shape[0], chunksize):
             cur_encoded_points = encoded_points_example[j: j+chunksize]
@@ -42,9 +42,9 @@ class NeRFManager(nn.Module):
 
             rgb_predicted.append(cur_rgb_predicted)
 
-            optimizer.step()
-            optimizer.zero_grad()
-            model.zero_grad()
+        optimizer.step()
+        optimizer.zero_grad()
+        model.zero_grad()
 
-        rgb_predicted = torch.concatenate(rgb_predicted, dim=0).reshape(100, 100, 3)
+        rgb_predicted = torch.concatenate(rgb_predicted, dim=0).reshape(800, 800, 3)
         return rgb_predicted, loss_sum

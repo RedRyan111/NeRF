@@ -3,8 +3,8 @@ from typing import Optional
 import torch
 from matplotlib import pyplot as plt
 from tqdm import tqdm
-from data_loader import DataLoader
-#from lego_data_loader import DataLoader
+#from data_loader import DataLoader
+from lego_data_loader import DataLoader
 from display_helper import display_image, create_video, save_image
 from models.small_NeRF_model import SmallNerfModel
 from models.tiny_NeRF_model import TinyNerfModel

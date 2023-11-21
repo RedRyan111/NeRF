@@ -13,4 +13,4 @@ training_variables:
   rescale_factor: 2
 
 display_variables:
-  display_every: 500
+  display_every: 10
