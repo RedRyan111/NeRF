@@ -1,13 +1,12 @@
 from typing import Optional
-
 import torch
 from matplotlib import pyplot as plt
 from tqdm import tqdm
-#from data_loader import DataLoader
-from lego_data_loader import DataLoader
+from data_loader import DataLoader
+#from lego_data_loader import DataLoader
 from display_helper import display_image, create_video, save_image
+from models.medium_NeRF_model import MediumNerfModel
 from models.small_NeRF_model import SmallNerfModel
-from models.tiny_NeRF_model import TinyNerfModel
 from nerf_forward_pass import NeRFManager
 from positional_encoding import positional_encoding
 from query_points import QueryPointSamplerFromRays
@@ -18,34 +17,32 @@ from setup_utils import set_random_seeds, load_training_config_yaml, get_tensor_
 set_random_seeds()
 training_config = load_training_config_yaml()
 device = get_tensor_device()
-print(f'device: {device}')
-#data_manager = DataLoader('tiny_nerf_data.npz', device)
 data_manager = DataLoader(device)
-
-print(f'data manager poses')
-print(data_manager.poses.shape)
-print(data_manager.poses[0])
+#data_manager = DataLoader(device)
 
 # training parameters
 lr = training_config['training_variables']['learning_rate']
 num_iters = training_config['training_variables']['num_iters']
-num_encoding_functions = training_config['positional_encoding']['num_encoding_functions']
+num_positional_encoding_functions = training_config['positional_encoding']['num_positional_encoding_functions']
+num_directional_encoding_functions = training_config['positional_encoding']['num_directional_encoding_functions']
 depth_samples_per_ray = training_config['rendering_variables']['depth_samples_per_ray']
 
 # Misc parameters
 display_every = training_config['display_variables']['display_every']
 
 # Specify encoding function.
-encode = lambda x: positional_encoding(x, num_encoding_functions)
+position_encode = lambda x: positional_encoding(x, num_positional_encoding_functions)
+direction_encode = lambda x: positional_encoding(x, num_directional_encoding_functions)
 
 # Initialize model and optimizer
-model = SmallNerfModel(num_encoding_functions).to(device)
+#model = SmallNerfModel(num_encoding_functions).to(device)
+model = MediumNerfModel(num_positional_encoding_functions, num_directional_encoding_functions).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
 # Setup classes
 query_sampler = QueryPointSamplerFromRays(training_config)
 rays_from_camera_builder = RaysFromCameraBuilder(data_manager, device)
-NeRF_manager = NeRFManager(encode, rays_from_camera_builder, query_sampler, depth_samples_per_ray, num_encoding_functions)
+NeRF_manager = NeRFManager(position_encode, direction_encode, rays_from_camera_builder, query_sampler, depth_samples_per_ray)
 
 psnrs = []
 test_img, test_pose = data_manager.get_random_image_and_pose_example()

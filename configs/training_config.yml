@@ -1,5 +1,6 @@
 positional_encoding:
-  num_encoding_functions: 6
+  num_positional_encoding_functions: 7
+  num_directional_encoding_functions: 3
 
 rendering_variables:
   near_threshold: 2.
@@ -9,8 +10,8 @@ rendering_variables:
 
 training_variables:
   learning_rate: .001
-  num_iters: 7001
+  num_iters: 4001
   rescale_factor: 2
 
 display_variables:
-  display_every: 10
+  display_every: 100

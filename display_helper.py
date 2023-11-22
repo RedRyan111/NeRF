@@ -9,7 +9,7 @@ def display_image(iteration, display_every, psnrs, rgb_predicted):
     #print(f'1 min: {torch.min(rgb_predicted)} max: {torch.max(rgb_predicted)} mean: {torch.mean(rgb_predicted)}')
     #if torch.max(rgb_predicted) > 1:
     #    rgb_predicted = rgb_predicted.clip(0, 255) / 255
-    print(f'2 min: {torch.min(rgb_predicted)} max: {torch.max(rgb_predicted)} mean: {torch.mean(rgb_predicted)}')
+    #print(f'2 min: {torch.min(rgb_predicted)} max: {torch.max(rgb_predicted)} mean: {torch.mean(rgb_predicted)}')
     iternums = [i * display_every for i in range(len(psnrs))]
     plt.figure(figsize=(10, 4))
     plt.subplot(121)
