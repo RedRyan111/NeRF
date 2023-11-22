@@ -25,7 +25,7 @@ class NeRFManager(nn.Module):
 
         rgb_predicted = []
         loss_sum = 0
-        chunksize = 7000
+        chunksize = 9000
         num_of_chunks = encoded_points_example.shape[0] // chunksize
         for j in range(0, encoded_points_example.shape[0], chunksize):
             cur_encoded_points = encoded_points_example[j: j+chunksize]

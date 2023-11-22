@@ -15,10 +15,6 @@ from ray_bundle import RaysFromCameraBuilder
 from setup_utils import set_random_seeds, load_training_config_yaml, get_tensor_device
 
 
-def get_minibatches(inputs: torch.Tensor, chunksize: Optional[int] = 2):
-    return [inputs[i:i + chunksize] for i in range(0, inputs.shape[0], chunksize)]
-
-
 set_random_seeds()
 training_config = load_training_config_yaml()
 device = get_tensor_device()
@@ -43,7 +39,6 @@ display_every = training_config['display_variables']['display_every']
 encode = lambda x: positional_encoding(x, num_encoding_functions)
 
 # Initialize model and optimizer
-#model = TinyNerfModel(num_encoding_functions).to(device)
 model = SmallNerfModel(num_encoding_functions).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
