@@ -1,16 +1,16 @@
 positional_encoding:
-  num_positional_encoding_functions: 7
-  num_directional_encoding_functions: 3
+  num_positional_encoding_functions: 10
+  num_directional_encoding_functions: 4
 
 rendering_variables:
   near_threshold: 2.
   far_threshold: 6.
   #depth_samples_per_ray: 32
-  depth_samples_per_ray: 32
+  depth_samples_per_ray: 50
 
 training_variables:
-  learning_rate: .001
-  num_iters: 4001
+  learning_rate: .0005
+  num_iters: 20001
   rescale_factor: 2
 
 display_variables:

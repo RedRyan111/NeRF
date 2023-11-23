@@ -50,16 +50,16 @@ for i in tqdm(range(num_iters)):
 
     target_img, target_tform_cam2world = data_manager.get_image_and_pose(i)
 
-    target_img = target_img.reshape(-1, 3)
+    #target_img = target_img.reshape(-1, 3)
 
-    rgb_predicted, loss = NeRF_manager.forward(model, target_tform_cam2world, target_img, optimizer)
+    rgb_predicted, loss = NeRF_manager.forward(model, target_tform_cam2world, target_img.reshape(-1, 3), optimizer)
 
     if i % display_every == 0:
         psnr = -10. * torch.log10(loss)
         psnrs.append(psnr.item())
 
         print("Loss:", loss.item())
-        display_image(i, display_every, psnrs, rgb_predicted)
+        display_image(i, display_every, psnrs, rgb_predicted,target_img )
 
     if i == num_iters - 1:
         save_image(display_every, psnrs, rgb_predicted)

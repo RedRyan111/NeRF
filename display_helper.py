@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from tqdm import tqdm
 
-
+'''
 def display_image(iteration, display_every, psnrs, rgb_predicted):
     #print(f'1 min: {torch.min(rgb_predicted)} max: {torch.max(rgb_predicted)} mean: {torch.mean(rgb_predicted)}')
     #if torch.max(rgb_predicted) > 1:
@@ -16,6 +16,25 @@ def display_image(iteration, display_every, psnrs, rgb_predicted):
     plt.imshow(rgb_predicted.detach().cpu().numpy())
     plt.title(f"Iteration {iteration}")
     plt.subplot(122)
+    plt.plot(iternums, psnrs)
+    plt.title("PSNR")
+    plt.show()
+'''
+
+def display_image(iteration, display_every, psnrs, rgb_predicted, target_img):
+    #print(f'1 min: {torch.min(rgb_predicted)} max: {torch.max(rgb_predicted)} mean: {torch.mean(rgb_predicted)}')
+    #if torch.max(rgb_predicted) > 1:
+    #    rgb_predicted = rgb_predicted.clip(0, 255) / 255
+    #print(f'2 min: {torch.min(rgb_predicted)} max: {torch.max(rgb_predicted)} mean: {torch.mean(rgb_predicted)}')
+    iternums = [i * display_every for i in range(len(psnrs))]
+    plt.figure(figsize=(15, 4))
+    plt.subplot(131)
+    plt.imshow(target_img.detach().cpu().numpy())
+    plt.title(f"Target Image")
+    plt.subplot(132)
+    plt.imshow(rgb_predicted.detach().cpu().numpy())
+    plt.title(f"Iteration {iteration}")
+    plt.subplot(133)
     plt.plot(iternums, psnrs)
     plt.title("PSNR")
     plt.show()
