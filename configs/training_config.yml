@@ -10,7 +10,8 @@ rendering_variables:
 
 training_variables:
   learning_rate: .0005
-  num_iters: 20001
+  #num_iters: 20001
+  num_iters: 19901
   rescale_factor: 2
 
 display_variables:

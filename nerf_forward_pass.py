@@ -21,27 +21,16 @@ class NeRFManager(nn.Module):
 
         query_points, depth_values = self.query_sampler.compute_query_points_from_rays(ray_origins, ray_directions)
 
-        #print(f'ray directions: {ray_directions.shape}')
-        #print(f'depth values: {depth_values.shape}')
-        #print(f'query points: {query_points.shape}')
+        depth_values = depth_values.reshape(-1, self.query_sampler.depth_samples_per_ray)
 
         ray_dor_new_shape = (100, 100, 1, 3)
         ray_directions = ray_directions.reshape(ray_dor_new_shape).expand(query_points.shape)
 
-        #print(f'depth values: {depth_values.shape}')
-        #print(f'query points: {query_points.shape}')
-
         encoded_query_points = self.pos_encoding_function(query_points)
-
         encoded_ray_directions = self.dir_encoding_function(ray_directions)
-
-        #print(f'encoded ray origins: {encoded_ray_directions.shape}')
-        #print(f'encoded query points: {encoded_query_points.shape}')
 
         encoded_points_example = encoded_query_points.reshape(100*100, self.query_sampler.depth_samples_per_ray, -1)
         encoded_ray_directions = encoded_ray_directions.reshape(100*100, self.query_sampler.depth_samples_per_ray, -1)
-        #print(f'encoded query points: {encoded_points_example.shape}')
-        #print(f'ray directions: {encoded_ray_directions.shape}')
 
 
         rgb_predicted = []
@@ -49,12 +38,13 @@ class NeRFManager(nn.Module):
         chunksize = 9000
         num_of_chunks = encoded_points_example.shape[0] // chunksize
         for j in range(0, encoded_points_example.shape[0], chunksize):
+
             cur_encoded_points = encoded_points_example[j: j+chunksize]
             cur_encoded_ray_origins = encoded_ray_directions[j: j+chunksize]
 
             rgb, density = model(cur_encoded_points, cur_encoded_ray_origins)
 
-            cur_depth_values = depth_values.reshape(-1, self.query_sampler.depth_samples_per_ray)[j: j+chunksize]
+            cur_depth_values = depth_values[j: j+chunksize]
 
             cur_rgb_predicted = render_volume_density(rgb, density, cur_depth_values)
 

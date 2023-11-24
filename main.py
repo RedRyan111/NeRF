@@ -1,14 +1,11 @@
-from typing import Optional
 import torch
-from matplotlib import pyplot as plt
 from tqdm import tqdm
 from data_loader import DataLoader
 #from lego_data_loader import DataLoader
 from display_helper import display_image, create_video, save_image
 from models.medium_NeRF_model import MediumNerfModel
-from models.small_NeRF_model import SmallNerfModel
 from nerf_forward_pass import NeRFManager
-from positional_encoding import positional_encoding
+from positional_encodings.positional_encoding import positional_encoding
 from query_points import QueryPointSamplerFromRays
 from ray_bundle import RaysFromCameraBuilder
 from setup_utils import set_random_seeds, load_training_config_yaml, get_tensor_device
@@ -35,7 +32,6 @@ position_encode = lambda x: positional_encoding(x, num_positional_encoding_funct
 direction_encode = lambda x: positional_encoding(x, num_directional_encoding_functions)
 
 # Initialize model and optimizer
-#model = SmallNerfModel(num_encoding_functions).to(device)
 model = MediumNerfModel(num_positional_encoding_functions, num_directional_encoding_functions).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
@@ -59,7 +55,7 @@ for i in tqdm(range(num_iters)):
         psnrs.append(psnr.item())
 
         print("Loss:", loss.item())
-        display_image(i, display_every, psnrs, rgb_predicted,target_img )
+        display_image(i, display_every, psnrs, rgb_predicted, target_img)
 
     if i == num_iters - 1:
         save_image(display_every, psnrs, rgb_predicted)

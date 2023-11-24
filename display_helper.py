@@ -40,21 +40,24 @@ def display_image(iteration, display_every, psnrs, rgb_predicted, target_img):
     plt.show()
 
 
-def save_image(display_every, psnrs, rgb_predicted):
+def save_image(display_every, psnrs, rgb_predicted, target_img):
     image_data = rgb_predicted.detach().cpu().numpy()  # Replace with your image data
     x_values = [i * display_every for i in range(len(psnrs))]  # Replace with your x values
     y_values = psnrs  # Replace with your y values
 
     # Create a subplot with 1 row and 2 columns
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 5))
+
+    ax1.imshow(target_img.detach().cpu().numpy())
+    ax1.title(f"Target Image")
 
     # Plot the image in the first subplot
-    ax1.imshow(image_data, cmap='gray')  # Use cmap='gray' if the image is grayscale
-    ax1.set_title('Image')
+    ax2.imshow(image_data, cmap='gray')  # Use cmap='gray' if the image is grayscale
+    ax2.set_title('Image')
 
     # Plot the scatter plot in the second subplot
-    ax2.plot(x_values, y_values)
-    ax2.set_title(f"Peak Signal To Noise Ratio vs Training Iteration")
+    ax3.plot(x_values, y_values)
+    ax3.set_title(f"Peak Signal To Noise Ratio vs Training Iteration")
 
     # Adjust layout to prevent clipping of titles
     plt.tight_layout()
