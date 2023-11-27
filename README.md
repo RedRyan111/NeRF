@@ -14,5 +14,6 @@ An unofficial Pytorch implementation of the paper
  
 This code is based on the original code by [krrish94](https://github.com/krrish94/nerf-pytorch) and another PyTorch implementation by [bmild](https://github.com/bmild/nerf)
 
+## Final Training Results:
 
 ![Final Training Results](https://github.com/RedRyan111/Tiny_NeRF/blob/main/results/Training_Result.png)
