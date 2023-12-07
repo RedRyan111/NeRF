@@ -23,21 +23,21 @@ class NeRFManager(nn.Module):
 
         depth_values = depth_values.reshape(-1, self.query_sampler.depth_samples_per_ray)
 
-        ray_dir_new_shape = (100, 100, 1, 3)
+        ray_dir_new_shape = (target_img.shape[0], target_img.shape[1], 1, 3)
         ray_directions = ray_directions.reshape(ray_dir_new_shape).expand(query_points.shape)
 
         encoded_query_points = self.pos_encoding_function(query_points)
         encoded_ray_directions = self.dir_encoding_function(ray_directions)
 
-        encoded_points_example = encoded_query_points.reshape(100*100, self.query_sampler.depth_samples_per_ray, -1)
-        encoded_ray_directions = encoded_ray_directions.reshape(100*100, self.query_sampler.depth_samples_per_ray, -1)
-
+        encoded_points_example = encoded_query_points.reshape(target_img.shape[0] * target_img.shape[1], self.query_sampler.depth_samples_per_ray, -1)
+        encoded_ray_directions = encoded_ray_directions.reshape(target_img.shape[0] * target_img.shape[1], self.query_sampler.depth_samples_per_ray, -1)
+        target_img = target_img.reshape(-1, 3)
 
         rgb_predicted = []
         loss_sum = 0
         chunksize = 9000
         num_of_chunks = encoded_points_example.shape[0] // chunksize
-        for j in range(0, encoded_points_example.shape[0], chunksize):
+        for j in range(0, encoded_points_example.shape[0], chunksize): #dont think this gets the final chunks...
 
             cur_encoded_points = encoded_points_example[j: j+chunksize]
             cur_encoded_ray_origins = encoded_ray_directions[j: j+chunksize]

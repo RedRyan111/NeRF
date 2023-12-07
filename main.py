@@ -1,7 +1,7 @@
 import torch
 from tqdm import tqdm
-from data_loaders.data_loader import DataLoader
-# from data_loaders.lego_data_loader import DataLoader
+from data_loaders.tiny_data_loader import DataLoader
+#from data_loaders.lego_data_loader import DataLoader
 from display_helper import display_image, create_video, save_image
 from models.medium_NeRF_model import MediumNerfModel
 from nerf_forward_pass import NeRFManager
@@ -26,7 +26,7 @@ depth_samples_per_ray = training_config['rendering_variables']['depth_samples_pe
 display_every = training_config['display_variables']['display_every']
 
 # Specify encoding function.
-position_encode = lambda x: positional_encoding(x, num_positional_encoding_functions)
+position_encode = lambda x: positional_encoding(x, num_positional_encoding_functions) #change to classes?
 direction_encode = lambda x: positional_encoding(x, num_directional_encoding_functions)
 
 # Initialize model and optimizer
@@ -46,7 +46,7 @@ for i in tqdm(range(num_iters)):
 
     target_img, target_tform_cam2world = data_manager.get_image_and_pose(i)
 
-    rgb_predicted, loss = NeRF_manager.forward(model, target_tform_cam2world, target_img.reshape(-1, 3), optimizer)
+    rgb_predicted, loss = NeRF_manager.forward(model, target_tform_cam2world, target_img, optimizer)
 
     if i % display_every == 0:
         psnr = -10. * torch.log10(loss)

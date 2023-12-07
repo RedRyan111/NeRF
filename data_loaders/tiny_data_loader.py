@@ -8,7 +8,7 @@ class DataLoader:
         seed = 9458
         torch.manual_seed(seed)
         np.random.seed(seed)
-        self.data = np.load('tiny_nerf_data.npz')
+        self.data = np.load('data/tiny_nerf_data/tiny_nerf_data.npz')
         self.images = torch.from_numpy(self.data['images']).to(device)
         self.poses = torch.from_numpy(self.data['poses']).to(device)
         self.focal = torch.from_numpy(self.data['focal']).to(device)

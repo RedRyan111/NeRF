@@ -7,7 +7,7 @@ from ray_bundle import get_ray_origins_and_directions_from_pose
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Load input images, poses, and intrinsics
-data = np.load("tiny_nerf_data.npz")
+data = np.load("../data/tiny_nerf_data/tiny_nerf_data.npz")
 
 # Images
 images = data["images"]
