@@ -23,8 +23,8 @@ class NeRFManager(nn.Module):
 
         depth_values = depth_values.reshape(-1, self.query_sampler.depth_samples_per_ray)
 
-        ray_dor_new_shape = (100, 100, 1, 3)
-        ray_directions = ray_directions.reshape(ray_dor_new_shape).expand(query_points.shape)
+        ray_dir_new_shape = (100, 100, 1, 3)
+        ray_directions = ray_directions.reshape(ray_dir_new_shape).expand(query_points.shape)
 
         encoded_query_points = self.pos_encoding_function(query_points)
         encoded_ray_directions = self.dir_encoding_function(ray_directions)

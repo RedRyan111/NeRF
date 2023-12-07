@@ -1,7 +1,7 @@
 import torch
 from tqdm import tqdm
-from data_loader import DataLoader
-#from lego_data_loader import DataLoader
+from data_loaders.data_loader import DataLoader
+#from data_loaders.lego_data_loader import DataLoader
 from display_helper import display_image, create_video, save_image
 from models.medium_NeRF_model import MediumNerfModel
 from nerf_forward_pass import NeRFManager
@@ -15,7 +15,6 @@ set_random_seeds()
 training_config = load_training_config_yaml()
 device = get_tensor_device()
 data_manager = DataLoader(device)
-#data_manager = DataLoader(device)
 
 # training parameters
 lr = training_config['training_variables']['learning_rate']

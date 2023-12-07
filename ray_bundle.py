@@ -1,7 +1,6 @@
 import torch
 
 
-#orientation is filled with zeros
 class CameraToWorldSpatialTransformationManager:
     def __init__(self, spatial_matrix):
         self.spatial_matrix = spatial_matrix

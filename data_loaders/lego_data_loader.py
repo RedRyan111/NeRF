@@ -15,7 +15,7 @@ class DataLoader:
         self.image_height = 800
         self.image_width = 800
 
-        self.file_path = 'nerf_example_data/nerf_synthetic/lego/'
+        self.file_path = '../nerf_example_data/nerf_synthetic/lego/'
 
         f = open(self.file_path + 'transforms_train.json')
         self.train_data = json.load(f)

@@ -2,7 +2,6 @@ import torch
 from typing import Optional
 
 
-#This is returning all zeros
 class QueryPointSamplerFromRays:
     def __init__(self, training_config):
         self.near_thresh = training_config['rendering_variables']['near_threshold']
@@ -19,7 +18,6 @@ class QueryPointSamplerFromRays:
 
         depth_values = torch.linspace(self.near_thresh, self.far_thresh, self.depth_samples_per_ray).to(ray_origins)
         if randomize:
-            # noise_shape = (width, height, num_samples)
             noise_shape = (ray_origins.shape[0], ray_origins.shape[1], self.depth_samples_per_ray)
             depth_values = depth_values + torch.rand(noise_shape).to(ray_origins) * self.noise_scalar
 
