@@ -8,10 +8,6 @@ import random
 
 class DataLoader:
     def __init__(self, device):
-        seed = 9458
-        torch.manual_seed(seed)
-        np.random.seed(seed)
-
         self.image_height = 800
         self.image_width = 800
 
@@ -23,12 +19,9 @@ class DataLoader:
 
         self.images = torch.from_numpy(self.get_images()).type(torch.FloatTensor).to(device)/255
         self.poses = torch.from_numpy(self.get_poses()).type(torch.FloatTensor).to(device)
-        self.focal = 1200#torch.from_numpy(np.array([128.0])).to(device)
+        self.focal = 1200
 
         self.num_of_images = self.images.shape[0]
-
-        #self.directions = np.stack([np.sum([0, 0, -1] * pose[:3, :3], axis=-1) for pose in self.poses])
-        #self.origins = self.poses[:, :3, -1]
 
     def get_example_index(self):
         return random.randint(0, self.num_of_images - 1)

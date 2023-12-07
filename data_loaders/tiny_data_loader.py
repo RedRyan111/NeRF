@@ -5,9 +5,6 @@ import random
 
 class DataLoader:
     def __init__(self, device):
-        seed = 9458
-        torch.manual_seed(seed)
-        np.random.seed(seed)
         self.data = np.load('data/tiny_nerf_data/tiny_nerf_data.npz')
         self.images = torch.from_numpy(self.data['images']).to(device)
         self.poses = torch.from_numpy(self.data['poses']).to(device)

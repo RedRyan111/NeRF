@@ -31,24 +31,24 @@ class NeRFManager(nn.Module):
 
         encoded_points_example = encoded_query_points.reshape(target_img.shape[0] * target_img.shape[1], self.query_sampler.depth_samples_per_ray, -1)
         encoded_ray_directions = encoded_ray_directions.reshape(target_img.shape[0] * target_img.shape[1], self.query_sampler.depth_samples_per_ray, -1)
-        target_img = target_img.reshape(-1, 3)
 
+        #make another data loader?
         rgb_predicted = []
         loss_sum = 0
         chunksize = 9000
         num_of_chunks = encoded_points_example.shape[0] // chunksize
         for j in range(0, encoded_points_example.shape[0], chunksize): #dont think this gets the final chunks...
 
-            cur_encoded_points = encoded_points_example[j: j+chunksize]
-            cur_encoded_ray_origins = encoded_ray_directions[j: j+chunksize]
+            encoded_points = encoded_points_example[j: j+chunksize]
+            encoded_ray_origins = encoded_ray_directions[j: j+chunksize]
 
-            rgb, density = model(cur_encoded_points, cur_encoded_ray_origins)
+            rgb, density = model(encoded_points, encoded_ray_origins)
 
             cur_depth_values = depth_values[j: j+chunksize]
 
             cur_rgb_predicted = render_volume_density(rgb, density, cur_depth_values)
 
-            loss = torch.nn.functional.mse_loss(cur_rgb_predicted, target_img[j: j+chunksize]) / num_of_chunks
+            loss = torch.nn.functional.mse_loss(cur_rgb_predicted, target_img.reshape(-1, 3)[j: j+chunksize]) / num_of_chunks
             loss_sum += loss.detach()
             loss.backward()
 
@@ -58,5 +58,5 @@ class NeRFManager(nn.Module):
         optimizer.zero_grad()
         model.zero_grad()
 
-        rgb_predicted = torch.concatenate(rgb_predicted, dim=0).reshape(100, 100, 3)
+        rgb_predicted = torch.concatenate(rgb_predicted, dim=0).reshape(target_img.shape[0], target_img.shape[1], 3)
         return rgb_predicted, loss_sum
