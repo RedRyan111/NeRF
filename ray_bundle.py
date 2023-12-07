@@ -25,8 +25,8 @@ class RaysFromCameraBuilder:
 
     def get_ray_directions(self):
         row_meshgrid, col_meshgrid = torch.meshgrid(
-            unit_length_torch_arange(self.height, self.focal_length),
-            unit_length_torch_arange(self.width, self.focal_length)
+            unit_length_torch_arange(self.height, self.focal_length).to(self.device),
+            unit_length_torch_arange(self.width, self.focal_length).to(self.device)
         )
 
         return get_ray_directions_from_meshgrid(row_meshgrid, col_meshgrid)
@@ -34,13 +34,7 @@ class RaysFromCameraBuilder:
     def ray_origins_and_directions_from_pose(self, camera_to_world_transform: torch.Tensor):
         cam2world = CameraToWorldSpatialTransformationManager(camera_to_world_transform)
 
-        row_meshgrid, col_meshgrid = torch.meshgrid(
-            unit_length_torch_arange(self.height, self.focal_length).to(self.device),
-            unit_length_torch_arange(self.width, self.focal_length).to(self.device)
-        )
-
-        directions = get_ray_directions_from_meshgrid(row_meshgrid, col_meshgrid)
-        ray_directions = cam2world.transform_ray_bundle(directions)
+        ray_directions = cam2world.transform_ray_bundle(self.directions)
         ray_origins = cam2world.expand_origin_to_match_ray_bundle_shape(ray_directions)
 
         return ray_origins, ray_directions
