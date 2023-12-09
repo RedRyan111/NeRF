@@ -13,9 +13,11 @@ class NeRFManager(nn.Module):
         self.rays_from_camera_builder = rays_from_camera_builder
         self.query_sampler = query_sampler
         self.depth_samples_per_ray = depth_samples_per_ray
-        #self.input_dim = 3 + 3 * 2 * num_encoding_functions
 
     def forward(self, model, tform_cam2world, target_img, optimizer):
+
+        image_height = target_img.shape[0]
+        image_width = target_img.shape[1]
 
         ray_origins, ray_directions = self.rays_from_camera_builder.ray_origins_and_directions_from_pose(tform_cam2world)
 
@@ -23,14 +25,14 @@ class NeRFManager(nn.Module):
 
         depth_values = depth_values.reshape(-1, self.query_sampler.depth_samples_per_ray)
 
-        ray_dir_new_shape = (target_img.shape[0], target_img.shape[1], 1, 3)
+        ray_dir_new_shape = (image_height, image_width, 1, 3)
         ray_directions = ray_directions.reshape(ray_dir_new_shape).expand(query_points.shape)
 
         encoded_query_points = self.pos_encoding_function(query_points)
         encoded_ray_directions = self.dir_encoding_function(ray_directions)
 
-        encoded_points_example = encoded_query_points.reshape(target_img.shape[0] * target_img.shape[1], self.query_sampler.depth_samples_per_ray, -1)
-        encoded_ray_directions = encoded_ray_directions.reshape(target_img.shape[0] * target_img.shape[1], self.query_sampler.depth_samples_per_ray, -1)
+        encoded_points_example = encoded_query_points.reshape(image_height * image_width, self.query_sampler.depth_samples_per_ray, -1)
+        encoded_ray_directions = encoded_ray_directions.reshape(image_height * image_width, self.query_sampler.depth_samples_per_ray, -1)
 
         #make another data loader?
         rgb_predicted = []
@@ -58,5 +60,5 @@ class NeRFManager(nn.Module):
         optimizer.zero_grad()
         model.zero_grad()
 
-        rgb_predicted = torch.concatenate(rgb_predicted, dim=0).reshape(target_img.shape[0], target_img.shape[1], 3)
+        rgb_predicted = torch.concatenate(rgb_predicted, dim=0).reshape(image_height, image_width, 3)
         return rgb_predicted, loss_sum
