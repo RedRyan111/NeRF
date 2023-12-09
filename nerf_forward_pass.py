@@ -65,27 +65,29 @@ class NeRFManager(nn.Module):
 
 
 class ModelForward:
-    def __init__(self, chunk_size, encoded_query_points, encoded_ray_directions):
+    def __init__(self, chunk_size, encoded_query_points, encoded_ray_directions, depth_values):
         self.chunk_size = chunk_size
         self.cur_index = 0
         self.num_of_rays = encoded_ray_directions.shape[0]
 
         self.encoded_query_points = torch.split(encoded_query_points, chunk_size)
         self.encoded_ray_directions = torch.split(encoded_ray_directions, chunk_size)
+        self.depth_values = torch.split(depth_values, chunk_size)
 
     def is_out_of_bounds(self):
         return (self.cur_index+1) * self.chunk_size > self.num_of_rays
 
-    def forward(self):
+    def forward(self, model):
         if self.is_out_of_bounds():
             raise Exception
 
-
-        encoded_points = encoded_points_example[j: j + chunksize]
-        encoded_ray_origins = encoded_ray_directions[j: j + chunksize]
+        encoded_points = self.encoded_query_points[i]
+        encoded_ray_origins = self.encoded_ray_directions[i]
 
         rgb, density = model(encoded_points, encoded_ray_origins)
 
         cur_depth_values = depth_values[j: j + chunksize]
 
         cur_rgb_predicted = render_volume_density(rgb, density, cur_depth_values)
+
+        return cur_rgb_predicted
