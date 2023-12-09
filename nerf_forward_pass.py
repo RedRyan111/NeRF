@@ -31,17 +31,17 @@ class NeRFManager(nn.Module):
         encoded_query_points = self.pos_encoding_function(query_points)
         encoded_ray_directions = self.dir_encoding_function(ray_directions)
 
-        encoded_points_example = encoded_query_points.reshape(image_height * image_width, self.query_sampler.depth_samples_per_ray, -1)
+        encoded_query_points = encoded_query_points.reshape(image_height * image_width, self.query_sampler.depth_samples_per_ray, -1)
         encoded_ray_directions = encoded_ray_directions.reshape(image_height * image_width, self.query_sampler.depth_samples_per_ray, -1)
 
         #make another data loader?
         rgb_predicted = []
         loss_sum = 0
         chunksize = 9000
-        num_of_chunks = encoded_points_example.shape[0] // chunksize
-        for j in range(0, encoded_points_example.shape[0], chunksize): #dont think this gets the final chunks...
+        num_of_chunks = encoded_query_points.shape[0] // chunksize
+        for j in range(0, encoded_query_points.shape[0], chunksize): #dont think this gets the final chunks...
 
-            encoded_points = encoded_points_example[j: j+chunksize]
+            encoded_points = encoded_query_points[j: j+chunksize]
             encoded_ray_origins = encoded_ray_directions[j: j+chunksize]
 
             rgb, density = model(encoded_points, encoded_ray_origins)
@@ -62,3 +62,30 @@ class NeRFManager(nn.Module):
 
         rgb_predicted = torch.concatenate(rgb_predicted, dim=0).reshape(image_height, image_width, 3)
         return rgb_predicted, loss_sum
+
+
+class ModelForward:
+    def __init__(self, chunk_size, encoded_query_points, encoded_ray_directions):
+        self.chunk_size = chunk_size
+        self.cur_index = 0
+        self.num_of_rays = encoded_ray_directions.shape[0]
+
+        self.encoded_query_points = torch.split(encoded_query_points, chunk_size)
+        self.encoded_ray_directions = torch.split(encoded_ray_directions, chunk_size)
+
+    def is_out_of_bounds(self):
+        return (self.cur_index+1) * self.chunk_size > self.num_of_rays
+
+    def forward(self):
+        if self.is_out_of_bounds():
+            raise Exception
+
+
+        encoded_points = encoded_points_example[j: j + chunksize]
+        encoded_ray_origins = encoded_ray_directions[j: j + chunksize]
+
+        rgb, density = model(encoded_points, encoded_ray_origins)
+
+        cur_depth_values = depth_values[j: j + chunksize]
+
+        cur_rgb_predicted = render_volume_density(rgb, density, cur_depth_values)
