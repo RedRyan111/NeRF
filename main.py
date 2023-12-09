@@ -5,7 +5,7 @@ from data_loaders.tiny_data_loader import DataLoader
 from display_helper import display_image, create_video, save_image
 from models.medium_NeRF_model import MediumNerfModel
 from nerf_forward_pass import NeRFManager
-from positional_encodings.positional_encoding import positional_encoding
+from positional_encodings.positional_encoding import positional_encoding, PositionalEncoding
 from query_point_sampler_from_rays import QueryPointSamplerFromRays
 from ray_bundle import RaysFromCameraBuilder
 from setup_utils import set_random_seeds, load_training_config_yaml, get_tensor_device
@@ -26,8 +26,11 @@ depth_samples_per_ray = training_config['rendering_variables']['depth_samples_pe
 display_every = training_config['display_variables']['display_every']
 
 # Specify encoding function.
-position_encoder = lambda x: positional_encoding(x, num_positional_encoding_functions) #change to classes?
-direction_encoder = lambda x: positional_encoding(x, num_directional_encoding_functions)
+#position_encoder = lambda x: positional_encoding(x, num_positional_encoding_functions) #change to classes?
+#direction_encoder = lambda x: positional_encoding(x, num_directional_encoding_functions)
+
+position_encoder = PositionalEncoding(3, num_positional_encoding_functions, True)
+direction_encoder = PositionalEncoding(3, num_directional_encoding_functions, True)
 
 # Initialize model and optimizer
 model = MediumNerfModel(num_positional_encoding_functions, num_directional_encoding_functions).to(device)

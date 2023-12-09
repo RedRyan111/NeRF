@@ -24,6 +24,8 @@ class NeRFManager(nn.Module):
 
         query_points, depth_values = self.query_sampler.compute_query_points_from_rays(ray_origins, ray_directions)
 
+        print(f'query points: {query_points.shape} depth values: {depth_values.shape} ray_directions: {ray_directions.shape}')
+
         depth_values = depth_values.reshape(-1, self.query_sampler.depth_samples_per_ray)
 
         ray_dir_new_shape = (image_height, image_width, 1, 3)
@@ -31,20 +33,19 @@ class NeRFManager(nn.Module):
 
         #lots of reshapes that could possibly be condensed
 
-        encoded_query_points = self.pos_encoding_function(query_points)
-        encoded_ray_directions = self.dir_encoding_function(ray_directions)
+        encoded_query_points = self.pos_encoding_function.forward(query_points)
+        encoded_ray_directions = self.dir_encoding_function.forward(ray_directions)
 
-        encoded_query_points = encoded_query_points.reshape(image_height * image_width,
-                                                            self.query_sampler.depth_samples_per_ray, -1)
-        encoded_ray_directions = encoded_ray_directions.reshape(image_height * image_width,
-                                                                self.query_sampler.depth_samples_per_ray, -1)
+        print(f'encoded query points: {encoded_query_points.shape} encoded ray directions: {encoded_ray_directions.shape}')
+
+        #break everything above into its own clasS?
 
         rgb_predicted = []
         loss_sum = 0
         chunksize = 9000
         model_forward_iterator = ModelForward(chunksize, encoded_query_points, encoded_ray_directions, depth_values,
                                               target_img, model)
-        num_of_chunks = image_height * image_width * self.query_sampler.depth_samples_per_ray / 9000
+        num_of_chunks = image_height * image_width * self.query_sampler.depth_samples_per_ray / 9000 #maybe not neccessary?
 
         for predicted_rgb, target_img in model_forward_iterator:
             loss = torch.nn.functional.mse_loss(predicted_rgb, target_img) / num_of_chunks
