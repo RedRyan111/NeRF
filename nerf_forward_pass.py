@@ -26,8 +26,6 @@ class NeRFManager(nn.Module):
 
         print(f'query points: {query_points.shape} depth values: {depth_values.shape} ray_directions: {ray_directions.shape}')
 
-        depth_values = depth_values.reshape(-1, self.query_sampler.depth_samples_per_ray)
-
         ray_dir_new_shape = (image_height, image_width, 1, 3)
         ray_directions = ray_directions.reshape(ray_dir_new_shape).expand(query_points.shape)  # turn into function
 
@@ -70,7 +68,8 @@ class ModelForward(object):
 
         self.encoded_query_points = torch.split(encoded_query_points, chunk_size)
         self.encoded_ray_directions = torch.split(encoded_ray_directions, chunk_size)
-        self.depth_values = torch.split(depth_values, chunk_size)
+        
+        self.depth_values = torch.split(depth_values.reshape(self.num_of_rays, -1), chunk_size)
         self.target_image = torch.split(target_image.reshape(-1, 3), chunk_size)
 
         self.model = model
