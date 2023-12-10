@@ -20,14 +20,6 @@ def get_differences_in_depth_values(depth_values):
     depth_differences = depth_values[..., 1:] - depth_values[..., :-1]
     return depth_differences
 
-
-def my_depth_differences(depth_values):
-    depth_values[..., 1:] = depth_values[..., 1:] - depth_values[..., :-1]
-    final_depth_value = torch.tensor([1e10]).to(depth_values).expand(depth_values[..., :1].shape)
-    depth_values = torch.cat((depth_values, final_depth_value), dim=-1)
-    depth_values[..., 0] = 10
-    return depth_values
-
 # for cumulative transmittance at i, we need to get the cumulative product of
 # all the previous transmittance values BEFORE i,
 # so on the first transmittance value, there is no transmittance value before it,

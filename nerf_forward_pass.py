@@ -68,7 +68,7 @@ class ModelForward(object):
 
         self.encoded_query_points = torch.split(encoded_query_points, chunk_size)
         self.encoded_ray_directions = torch.split(encoded_ray_directions, chunk_size)
-        
+
         self.depth_values = torch.split(depth_values.reshape(self.num_of_rays, -1), chunk_size)
         self.target_image = torch.split(target_image.reshape(-1, 3), chunk_size)
 

@@ -25,10 +25,7 @@ depth_samples_per_ray = training_config['rendering_variables']['depth_samples_pe
 # Misc parameters
 display_every = training_config['display_variables']['display_every']
 
-# Specify encoding function.
-#position_encoder = lambda x: positional_encoding(x, num_positional_encoding_functions) #change to classes?
-#direction_encoder = lambda x: positional_encoding(x, num_directional_encoding_functions)
-
+# Specify encoding classes
 position_encoder = PositionalEncoding(3, num_positional_encoding_functions, True)
 direction_encoder = PositionalEncoding(3, num_directional_encoding_functions, True)
 
@@ -45,6 +42,7 @@ NeRF_manager = NeRFManager(position_encoder, direction_encoder, rays_from_camera
 
 psnrs = []
 test_img, test_pose = data_manager.get_random_image_and_pose_example()
+#turn this into an iterable?
 for i in tqdm(range(num_iters)):
 
     target_img, target_tform_cam2world = data_manager.get_image_and_pose(i)
