@@ -2,7 +2,7 @@ import torch
 from typing import Optional
 
 
-class QueryPointSamplerFromRays:
+class PointSamplerFromRays:
     def __init__(self, training_config):
         self.near_thresh = training_config['rendering_variables']['near_threshold']
         self.far_thresh = training_config['rendering_variables']['far_threshold']
@@ -10,11 +10,11 @@ class QueryPointSamplerFromRays:
 
         self.noise_scalar = (self.far_thresh - self.near_thresh) / self.depth_samples_per_ray
 
-    def compute_query_points_from_rays(self,
-                                       ray_origins: torch.Tensor,
-                                       ray_directions: torch.Tensor,
-                                       randomize: Optional[bool] = True
-                                       ) -> (torch.Tensor, torch.Tensor):
+    def query_points_on_rays(self,
+                               ray_origins: torch.Tensor,
+                               ray_directions: torch.Tensor,
+                               randomize: Optional[bool] = True
+                               ) -> (torch.Tensor, torch.Tensor):
 
         depth_values = torch.linspace(self.near_thresh, self.far_thresh, self.depth_samples_per_ray).to(ray_origins)
         if randomize:

@@ -5,59 +5,28 @@ from tqdm import tqdm
 from render_volume_density import render_volume_density
 
 
-class NeRFManager(nn.Module):
-    def __init__(self, pos_encoding_function, dir_encoding_function, rays_from_camera_builder, query_sampler,
+class PointAndDirectionSampler:
+    def __init__(self, position_encoder, direction_encoder, rays_from_camera_builder, point_sampler,
                  depth_samples_per_ray):
         super().__init__()
-        self.pos_encoding_function = pos_encoding_function
-        self.dir_encoding_function = dir_encoding_function
+        self.pos_encoding_function = position_encoder
+        self.dir_encoding_function = direction_encoder
         self.rays_from_camera_builder = rays_from_camera_builder
-        self.query_sampler = query_sampler
+        self.point_sampler = point_sampler
         self.depth_samples_per_ray = depth_samples_per_ray
 
-    def forward(self, model, tform_cam2world, target_img, optimizer):
-        image_height = target_img.shape[0]  # TODO: Move these
-        image_width = target_img.shape[1]
-
+    def encoded_points_and_directions_from_camera(self, tform_cam2world):
         ray_origins, ray_directions = self.rays_from_camera_builder.ray_origins_and_directions_from_pose(
             tform_cam2world)
 
-        query_points, depth_values = self.query_sampler.compute_query_points_from_rays(ray_origins, ray_directions)
+        query_points, depth_values = self.point_sampler.query_points_on_rays(ray_origins, ray_directions)
 
-        print(f'query points: {query_points.shape} depth values: {depth_values.shape} ray_directions: {ray_directions.shape}')
-
-        ray_dir_new_shape = (image_height, image_width, 1, 3)
-        ray_directions = ray_directions.reshape(ray_dir_new_shape).expand(query_points.shape)  # turn into function
-
-        #lots of reshapes that could possibly be condensed
+        ray_directions = expand_ray_directions_to_fit_ray_query_points(ray_directions, query_points)
 
         encoded_query_points = self.pos_encoding_function.forward(query_points)
         encoded_ray_directions = self.dir_encoding_function.forward(ray_directions)
 
-        print(f'encoded query points: {encoded_query_points.shape} encoded ray directions: {encoded_ray_directions.shape}')
-
-        #break everything above into its own clasS?
-
-        rgb_predicted = []
-        loss_sum = 0
-        chunksize = 9000
-        model_forward_iterator = ModelForward(chunksize, encoded_query_points, encoded_ray_directions, depth_values,
-                                              target_img, model)
-        num_of_chunks = image_height * image_width * self.query_sampler.depth_samples_per_ray / 9000 #maybe not neccessary?
-
-        for predicted_rgb, target_img in model_forward_iterator:
-            loss = torch.nn.functional.mse_loss(predicted_rgb, target_img) / num_of_chunks
-            loss_sum += loss.detach()
-            loss.backward()
-
-            rgb_predicted.append(predicted_rgb)
-
-        optimizer.step()
-        optimizer.zero_grad()
-        model.zero_grad()
-
-        rgb_predicted = torch.concatenate(rgb_predicted, dim=0).reshape(image_height, image_width, 3)
-        return rgb_predicted, loss_sum
+        return encoded_query_points, encoded_ray_directions, depth_values
 
 
 class ModelForward(object):
@@ -88,6 +57,7 @@ class ModelForward(object):
 
         encoded_points = self.encoded_query_points[self.chunk_index]
         encoded_ray_origins = self.encoded_ray_directions[self.chunk_index]
+
         depth_values = self.depth_values[self.chunk_index]
 
         rgb, density = self.model(encoded_points, encoded_ray_origins)
@@ -95,3 +65,10 @@ class ModelForward(object):
         rgb_predicted = render_volume_density(rgb, density, depth_values)
 
         return rgb_predicted, self.target_image[self.chunk_index]
+
+
+def expand_ray_directions_to_fit_ray_query_points(ray_directions, query_points):
+    ray_dir_new_shape = (query_points.shape[0], query_points.shape[1], 1, 3)
+    ray_directions = ray_directions.reshape(ray_dir_new_shape).expand(query_points.shape)
+
+    return ray_directions
