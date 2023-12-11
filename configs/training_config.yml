@@ -6,6 +6,7 @@ rendering_variables:
   near_threshold: 2.
   far_threshold: 6.
   depth_samples_per_ray: 50
+  samples_per_model_forward_pass: 10000
 
 training_variables:
   learning_rate: .0005

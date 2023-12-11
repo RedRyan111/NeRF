@@ -29,7 +29,7 @@ class PointAndDirectionSampler:
         return encoded_query_points, encoded_ray_directions, depth_values
 
 
-class ModelForward(object):
+class ModelIteratorOverRayChunks(object):
     def __init__(self, chunk_size, encoded_query_points, encoded_ray_directions, depth_values, target_image, model):
         self.chunk_size = chunk_size
         self.chunk_index = -1
@@ -47,14 +47,13 @@ class ModelForward(object):
         return self
 
     def is_out_of_bounds(self):
-        return (self.chunk_index + 1) * self.chunk_size > self.num_of_rays
+        return (self.chunk_index + 1) * self.chunk_size >= self.num_of_rays
 
     def __next__(self):
         if self.is_out_of_bounds():
             raise StopIteration
 
         self.chunk_index += 1
-
         encoded_points = self.encoded_query_points[self.chunk_index]
         encoded_ray_origins = self.encoded_ray_directions[self.chunk_index]
 
