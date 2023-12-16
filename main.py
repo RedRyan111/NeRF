@@ -6,7 +6,7 @@ from display_utils.display_helper import display_image, create_video, save_image
 from models.medium_NeRF_model import MediumNerfModel
 from nerf_forward_pass import EncodedModelInputs, ModelIteratorOverRayChunks
 from positional_encodings.positional_encoding import PositionalEncoding
-from query_point_sampler_from_rays import PointSamplerFromRays
+from sample_points_from_rays import PointSamplerFromRays
 from ray_bundle import RaysFromCameraBuilder
 from setup_utils import set_random_seeds, load_training_config_yaml, get_tensor_device
 
