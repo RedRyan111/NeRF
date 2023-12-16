@@ -52,15 +52,15 @@ for i in tqdm(range(num_iters)):
 
     encoded_points_on_ray, encoded_ray_directions, depth_values = encoded_model_inputs.encoded_points_and_directions_from_camera(target_tform_cam2world)
 
-    predicted_image = []
-    loss_sum = 0
     model_forward_iterator = ModelIteratorOverRayChunks(chunksize, encoded_points_on_ray, encoded_ray_directions, depth_values,
                                                         target_img, model)
 
+    predicted_image = []
+    loss_sum = 0
     for predicted_pixels, target_pixels in model_forward_iterator:
         loss = torch.nn.functional.mse_loss(predicted_pixels, target_pixels)
-        loss_sum += loss.detach()
         loss.backward()
+        loss_sum += loss.detach()
 
         predicted_image.append(predicted_pixels)
 
@@ -79,6 +79,5 @@ for i in tqdm(range(num_iters)):
 
     if i == num_iters - 1:
         save_image(display_every, psnrs, predicted_image)
-        create_video(NeRF_manager, device)
 
 print('Done!')
