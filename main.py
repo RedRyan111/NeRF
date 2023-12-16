@@ -4,7 +4,7 @@ from data_loaders.tiny_data_loader import DataLoader
 # from data_loaders.lego_data_loader import DataLoader
 from display_helper import display_image, create_video, save_image
 from models.medium_NeRF_model import MediumNerfModel
-from nerf_forward_pass import PointAndDirectionSampler, ModelIteratorOverRayChunks
+from nerf_forward_pass import EncodedModelInputs, ModelIteratorOverRayChunks
 from positional_encodings.positional_encoding import PositionalEncoding
 from query_point_sampler_from_rays import PointSamplerFromRays
 from ray_bundle import RaysFromCameraBuilder
@@ -35,14 +35,14 @@ model = MediumNerfModel(num_positional_encoding_functions, num_directional_encod
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
 # Setup ray classes
-query_sampler = PointSamplerFromRays(training_config)
+point_sampler = PointSamplerFromRays(training_config)
 rays_from_camera_builder = RaysFromCameraBuilder(data_manager, device)
 
-point_and_direction_sampler = PointAndDirectionSampler(position_encoder,
-                                                       direction_encoder,
-                                                       rays_from_camera_builder,
-                                                       query_sampler,
-                                                       depth_samples_per_ray)
+encoded_model_inputs = EncodedModelInputs(position_encoder,
+                                          direction_encoder,
+                                          rays_from_camera_builder,
+                                          point_sampler,
+                                          depth_samples_per_ray)
 
 
 psnrs = []
@@ -50,7 +50,7 @@ for i in tqdm(range(num_iters)):
 
     target_img, target_tform_cam2world = data_manager.get_image_and_pose(i)
 
-    encoded_points_on_ray, encoded_ray_directions, depth_values = point_and_direction_sampler.encoded_points_and_directions_from_camera(target_tform_cam2world)
+    encoded_points_on_ray, encoded_ray_directions, depth_values = encoded_model_inputs.encoded_points_and_directions_from_camera(target_tform_cam2world)
 
     predicted_image = []
     loss_sum = 0

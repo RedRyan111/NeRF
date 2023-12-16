@@ -1,11 +1,9 @@
 import torch
-from torch import nn
-from tqdm import tqdm
 
-from render_volume_density import render_volume_density
+from volume_rendering_utils.render_volume_density import render_volume_density
 
 
-class PointAndDirectionSampler:
+class EncodedModelInputs:
     def __init__(self, position_encoder, direction_encoder, rays_from_camera_builder, point_sampler,
                  depth_samples_per_ray):
         super().__init__()
