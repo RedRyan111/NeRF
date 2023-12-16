@@ -1,9 +1,9 @@
 import torch
 
 
-class MediumNerfModel(torch.nn.Module):
+class NerfModel(torch.nn.Module):
     def __init__(self, num_pos_encoding_functions, num_dir_encoding_functions):
-        super(MediumNerfModel, self).__init__()
+        super(NerfModel, self).__init__()
         filter_size = 200
 
         self.layer1 = torch.nn.Linear(3 + 3 * 2 * num_pos_encoding_functions, filter_size)

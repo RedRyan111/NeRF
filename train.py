@@ -3,7 +3,7 @@ from tqdm import tqdm
 from data_loaders.tiny_data_loader import DataLoader
 # from data_loaders.lego_data_loader import DataLoader
 from display_utils.display_helper import display_image, create_video, save_image
-from NeRF.models.medium_NeRF_model import MediumNerfModel
+from NeRF.models.full_model import NerfModel
 from NeRF.nerf_forward_pass import EncodedModelInputs, ModelIteratorOverRayChunks
 from NeRF.positional_encodings.positional_encoding import PositionalEncoding
 from NeRF.sample_points_from_rays import PointSamplerFromRays
@@ -31,7 +31,7 @@ position_encoder = PositionalEncoding(3, num_positional_encoding_functions, True
 direction_encoder = PositionalEncoding(3, num_directional_encoding_functions, True)
 
 # Initialize model and optimizer
-model = MediumNerfModel(num_positional_encoding_functions, num_directional_encoding_functions).to(device)
+model = NerfModel(num_positional_encoding_functions, num_directional_encoding_functions).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
 # Setup ray classes
