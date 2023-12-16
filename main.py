@@ -2,7 +2,7 @@ import torch
 from tqdm import tqdm
 from data_loaders.tiny_data_loader import DataLoader
 # from data_loaders.lego_data_loader import DataLoader
-from display_helper import display_image, create_video, save_image
+from display_utils.display_helper import display_image, create_video, save_image
 from models.medium_NeRF_model import MediumNerfModel
 from nerf_forward_pass import EncodedModelInputs, ModelIteratorOverRayChunks
 from positional_encodings.positional_encoding import PositionalEncoding
