@@ -1,6 +1,6 @@
 import torch
 
-from ray_bundle import get_ray_origins_and_directions_from_pose
+from NeRF.rays_from_camera_builder import get_ray_origins_and_directions_from_pose
 
 
 def meshgrid_xy(tensor1: torch.Tensor, tensor2: torch.Tensor) -> (torch.Tensor, torch.Tensor):
