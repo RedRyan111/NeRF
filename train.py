@@ -2,10 +2,10 @@ import torch
 from tqdm import tqdm
 from data_loaders.tiny_data_loader import DataLoader
 # from data_loaders.lego_data_loader import DataLoader
-from display_utils.display_helper import display_image, create_video, save_image
+from display_utils.display_helper import display_image, create_video
 from NeRF.models.full_model import NerfModel
 from NeRF.nerf_forward_pass import EncodedModelInputs, ModelIteratorOverRayChunks
-from NeRF.positional_encodings.positional_encoding import PositionalEncoding
+from NeRF.positional_encoding import PositionalEncoding
 from NeRF.sample_points_from_rays import PointSamplerFromRays
 from NeRF.rays_from_camera_builder import RaysFromCameraBuilder
 from setup_utils import set_random_seeds, load_training_config_yaml, get_tensor_device
@@ -78,6 +78,7 @@ for i in tqdm(range(num_iters)):
         display_image(i, display_every, psnrs, predicted_image, target_img)
 
     if i == num_iters - 1:
-        save_image(display_every, psnrs, predicted_image)
+        #save_image(display_every, psnrs, predicted_image)
+        create_video()
 
 print('Done!')
